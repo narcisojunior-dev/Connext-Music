@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NowPlayingArtwork, trackColor } from '@/components/player/NowPlayingArtwork';
 import { PlayerControls } from '@/components/player/PlayerControls';
 import { ProgressSlider } from '@/components/player/ProgressSlider';
+import { FavoriteButton } from '@/components/track/FavoriteButton';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { Text } from '@/components/ui/text';
@@ -22,6 +23,7 @@ import {
   togglePlay,
   toggleShuffle,
 } from '@/services/player/queue-manager';
+import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
 
 /** Maior lado que a capa pode ocupar, respeitando telas estreitas. */
@@ -55,6 +57,12 @@ export default function PlayerScreen() {
   const shuffleMode = usePlayerStore((s) => s.shuffleMode);
   const queueLength = usePlayerStore((s) => s.queue.length);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
+  const toggleFavorite = useLibraryStore((s) => s.toggleFavorite);
+  // O favorito vem da biblioteca, nao da faixa da fila: a fila e uma copia do
+  // momento em que a reproducao comecou e nao reflete favoritar depois disso.
+  const isFavorite = useLibraryStore(
+    (s) => s.tracks.find((t) => t.id === currentTrack?.id)?.isFavorite ?? false,
+  );
 
   const handleSeek = useCallback((seconds: number) => void seekTo(seconds), []);
 
@@ -97,7 +105,13 @@ export default function PlayerScreen() {
           <Text variant="overline" color="textMuted">
             {currentIndex + 1} DE {queueLength}
           </Text>
-          <IconButton name="ellipsis-horizontal" accessibilityLabel="Opções da faixa" />
+          <View style={styles.topRight}>
+            <FavoriteButton
+              isFavorite={isFavorite}
+              onToggle={() => currentTrack && toggleFavorite(currentTrack.id)}
+            />
+            <IconButton name="ellipsis-horizontal" accessibilityLabel="Opções da faixa" />
+          </View>
         </View>
 
         <View style={styles.artworkArea}>
@@ -156,6 +170,11 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  topRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   topBar: {
     flexDirection: 'row',

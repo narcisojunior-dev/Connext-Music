@@ -11,6 +11,7 @@ import {
   TrackList,
   type LibraryTab,
 } from '@/components/library';
+import { TrackActionsSheet } from '@/components/track/TrackActionsSheet';
 import { Button } from '@/components/ui/button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { useLibraryScanner } from '@/hooks/use-library-scanner';
@@ -51,6 +52,10 @@ export default function LibraryScreen() {
   // ──────────────────────────────────────────────────── dados derivados
 
   const sortedTracks = useMemo(() => sortByTitle(tracks), [tracks]);
+  const favorites = useMemo(() => sortedTracks.filter((t) => t.isFavorite), [sortedTracks]);
+
+  /** Faixa cujo toque longo abriu a folha de ações; `null` mantém fechada. */
+  const [actionsTrack, setActionsTrack] = useState<Track | null>(null);
   const artists = useMemo(() => groupByArtist(tracks), [tracks]);
   const albums = useMemo(() => groupByAlbum(tracks), [tracks]);
   const genres = useMemo(() => groupByGenre(tracks), [tracks]);
@@ -61,11 +66,17 @@ export default function LibraryScreen() {
     scan();
   }, [scan]);
 
+  /**
+   * Toca a partir da faixa tocada.
+   *
+   * `list` existe porque a fila precisa ser a lista **visível** — tocar uma
+   * favorita deve enfileirar só as favoritas, não a biblioteca inteira.
+   */
   const handleTrackPress = useCallback(
-    (_track: Track, index: number) => {
+    (_track: Track, index: number, list: Track[] = sortedTracks) => {
       // Navega ao player imediatamente; o áudio carrega em paralelo.
       router.push('/player');
-      playQueue(sortedTracks, index).catch((error) =>
+      playQueue(list, index).catch((error) =>
         console.warn('[player] não foi possível iniciar a reprodução:', error),
       );
     },
@@ -142,7 +153,20 @@ export default function LibraryScreen() {
           refreshing={isScanning}
           onRefresh={handleRefresh}
           onTrackPress={handleTrackPress}
+          onTrackLongPress={setActionsTrack}
           header={scanHeader}
+        />
+      )}
+
+      {activeTab === 'favorites' && (
+        <TrackList
+          tracks={favorites}
+          currentTrackId={currentTrackId}
+          refreshing={isScanning}
+          onRefresh={handleRefresh}
+          onTrackPress={(track, index) => handleTrackPress(track, index, favorites)}
+          onTrackLongPress={setActionsTrack}
+          emptyText={'Nenhuma favorita ainda.\nToque no coração de uma música.'}
         />
       )}
 
@@ -176,6 +200,7 @@ export default function LibraryScreen() {
           header={scanHeader}
         />
       )}
+      <TrackActionsSheet track={actionsTrack} onClose={() => setActionsTrack(null)} />
     </View>
   );
 }

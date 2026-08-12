@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { FavoriteButton } from '@/components/track/FavoriteButton';
 import { Text } from '@/components/ui/text';
+import { useLibraryStore } from '@/stores/library-store';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDuration } from '@/utils/formatters';
 import type { Track } from '@/types/track';
@@ -40,13 +43,23 @@ export interface TrackItemProps {
  */
 export function TrackItem({ track, isActive = false, onPress, onLongPress }: TrackItemProps) {
   const theme = useTheme();
+  const toggleFavorite = useLibraryStore((s) => s.toggleFavorite);
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${track.title}, ${track.artist}`}
       onPress={onPress}
-      onLongPress={onLongPress}
+      onLongPress={
+        onLongPress
+          ? () => {
+              // O toque longo abre um menu; a vibração confirma que ele foi
+              // reconhecido antes de a folha aparecer.
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+              onLongPress();
+            }
+          : undefined
+      }
       style={({ pressed }) => [
         styles.row,
         { borderRadius: theme.radius.card },
@@ -97,6 +110,12 @@ export function TrackItem({ track, isActive = false, onPress, onLongPress }: Tra
       <Text variant="overline" color="textMuted">
         {formatDuration(track.duration)}
       </Text>
+
+      <FavoriteButton
+        isFavorite={track.isFavorite}
+        onToggle={() => toggleFavorite(track.id)}
+        size={18}
+      />
     </Pressable>
   );
 }

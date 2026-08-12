@@ -434,6 +434,26 @@ reescaneia, em vez de entregar objetos com campos faltando para a UI.
 
 ---
 
+## Favoritos e ações de faixa
+
+Coração no `TrackItem` e no player, com aba **Favoritas** na Biblioteca. Favoritar persiste junto da
+biblioteca (é campo da `Track`, carregado adiante em cada scan — ver issue #7).
+
+A animação de "like" pulsa **só ao favoritar**, não ao remover: ela celebra uma ação positiva, e
+repeti-la ao desfavoritar daria o sinal errado.
+
+O toque longo abre uma folha com adicionar à fila, adicionar a playlist, favoritar, ver metadados
+completos, compartilhar o arquivo e remover da biblioteca. Ela troca de conteúdo internamente em vez
+de empilhar modais — modal sobre modal no iOS trava a animação e deixa o gesto de fechar ambíguo.
+
+Remover uma faixa da biblioteca também a tira das playlists; deixá-la lá criaria um id órfão que
+some da tela sem explicação.
+
+> No player, o estado de favorito vem da **biblioteca**, não da faixa na fila: a fila é uma cópia do
+> momento em que a reprodução começou e não refletiria um favoritar posterior.
+
+---
+
 ## Playlists
 
 CRUD completo com reordenação por arrastar, persistido no AsyncStorage junto da biblioteca.
