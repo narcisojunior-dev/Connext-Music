@@ -25,10 +25,10 @@ background playback, lock screen e Control Center.
 | [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7)   | Persistência + scan incremental      | ✅ Concluída |
 | [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8)   | Player de áudio + background         | ✅ Concluída |
 | [#9](https://github.com/narcisojunior-dev/Connext-Music/issues/9)   | Fila, shuffle e repeat               | ✅ Concluída |
-| [#10](https://github.com/narcisojunior-dev/Connext-Music/issues/10) | Tela de Biblioteca completa          | ⏳ Próxima   |
+| [#10](https://github.com/narcisojunior-dev/Connext-Music/issues/10) | Tela de Biblioteca completa          | ✅ Concluída |
 
-As telas existem como placeholders "em construção", cada uma marcada com a issue que a implementa.
-A navegação inteira já está montada e pode ser percorrida.
+As telas de Busca, Playlists e Ajustes existem como placeholders "em construção", cada uma marcada
+com a issue que a implementa. A Biblioteca já é funcional e exibe músicas escaneadas.
 
 ---
 
@@ -208,6 +208,43 @@ escondido atrás da barra.
 
 As telas ainda não implementadas usam o componente `PlaceholderScreen`, que mostra o título, o que
 a tela vai fazer e a issue que a implementa.
+
+---
+
+## Biblioteca (Tela Principal)
+
+A tab principal do app. Exibe a coleção de músicas do usuário em **4 modos de visualização**,
+alternáveis por uma barra de pills horizontal:
+
+| Aba        | Componente       | Comportamento                                                        |
+| ---------- | ---------------- | -------------------------------------------------------------------- |
+| **Todas**  | `TrackList`      | Lista flat alfabética — `FlatList` com `getItemLayout` (60fps)       |
+| **Artistas** | `ArtistSection` | `SectionList` agrupada, headers sticky com contagem e duração total |
+| **Álbuns** | `AlbumGrid`      | Grid 2 colunas com artwork quadrado                                  |
+| **Gêneros**| `GenreList`      | Lista com ícone colorido, contagem e chevron                         |
+
+- **Pull-to-refresh** em qualquer aba inicia o scan, com barra de progresso animada (spring via
+  Reanimated) mostrando arquivo atual e progresso.
+- **Tocar uma faixa** abre o player fullscreen e inicia a reprodução de toda a lista do contexto
+  atual (álbum, artista, gênero ou lista completa).
+- Cada faixa exibe **artwork** (imagem real via `expo-image`) ou **placeholder colorido** gerado a
+  partir de um hash do ID, com ícone de nota musical.
+- `TrackList` é otimizada: `getItemLayout` fixo (64pt), `removeClippedSubviews`,
+  `maxToRenderPerBatch: 15`, `windowSize: 7` — mantém 60fps com 1000+ itens.
+- **Álbuns e Artistas são derivados**, nunca armazenados. São agrupados em runtime pelas funções em
+  `src/utils/library-helpers.ts` e recalculados via `useMemo` quando a lista de faixas muda.
+
+Componentes em `src/components/library/`:
+
+| Componente     | Responsabilidade                                     |
+| -------------- | ---------------------------------------------------- |
+| `TrackItem`    | Linha com artwork, título, artista, duração           |
+| `TrackList`    | `FlatList` otimizada com empty state e header slot    |
+| `ScanProgress` | Barra animada do scan (lê direto do store)            |
+| `LibraryTabs`  | Pills horizontais com micro-animação de scale         |
+| `ArtistSection`| `SectionList` agrupada por artista                    |
+| `AlbumGrid`    | Grid 2 colunas com cards responsivos                  |
+| `GenreList`    | Lista de gêneros com contagem e ícone colorido        |
 
 ---
 

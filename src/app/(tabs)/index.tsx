@@ -1,97 +1,111 @@
 import { router } from 'expo-router';
-import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { Box } from '@/components/ui/box';
+import {
+  AlbumGrid,
+  ArtistSection,
+  GenreList,
+  LibraryTabs,
+  ScanProgress,
+  TrackList,
+  type LibraryTab,
+} from '@/components/library';
 import { Button } from '@/components/ui/button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
-import { Text } from '@/components/ui/text';
 import { useLibraryScanner } from '@/hooks/use-library-scanner';
-import { useTheme } from '@/hooks/use-theme';
 import { playQueue } from '@/services/player/queue-manager';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
+import type { Album } from '@/types/album';
 import type { Track } from '@/types/track';
+import {
+  groupByAlbum,
+  groupByArtist,
+  groupByGenre,
+  sortByTitle,
+  type GenreGroup,
+} from '@/utils/library-helpers';
 
-/** mm:ss. A versao definitiva vira em `utils/formatters.ts`. */
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-function TrackRow({ track, index }: { track: Track; index: number }) {
-  const theme = useTheme();
-  const tracks = useLibraryStore((s) => s.tracks);
-  const isCurrent = usePlayerStore((s) => s.currentTrack?.id === track.id);
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => {
-        // Abre o player na hora e deixa o áudio carregar em paralelo: esperar o
-        // arquivo abrir antes de navegar deixaria o toque com atraso perceptível.
-        router.push('/player');
-        playQueue(tracks, index).catch((error) =>
-          console.warn('[player] não foi possível iniciar a reprodução:', error),
-        );
-      }}
-      style={({ pressed }) => [
-        styles.row,
-        { borderRadius: theme.radius.card },
-        pressed && { backgroundColor: theme.colors.surface },
-      ]}
-    >
-      <View
-        style={[
-          styles.thumb,
-          { backgroundColor: theme.colors.surface, borderRadius: theme.radius.card },
-        ]}
-      />
-      <View style={styles.rowText}>
-        <Text variant="title" color={isCurrent ? 'primary' : 'textPrimary'} numberOfLines={1}>
-          {track.title}
-        </Text>
-        <Text variant="caption" color="textSecondary" numberOfLines={1}>
-          {track.artist} · {track.album}
-        </Text>
-      </View>
-      <Text variant="overline" color="textMuted">
-        {formatDuration(track.duration)}
-      </Text>
-    </Pressable>
-  );
-}
-
-/** Progresso do scan. A versao animada chega na Issue #10. */
-function ScanProgressBar() {
-  const theme = useTheme();
-  const progress = useLibraryStore((s) => s.scanProgress);
-  if (!progress) return null;
-
-  const ratio = progress.total > 0 ? progress.current / progress.total : 0;
-
-  return (
-    <Box background="surface" padding="md" radius="card" gap="sm">
-      <Text variant="overline" color="textSecondary" numberOfLines={1}>
-        {progress.current}/{progress.total} · {progress.fileName}
-      </Text>
-      <View style={[styles.track, { backgroundColor: theme.colors.surfaceElevated }]}>
-        <View
-          style={[
-            styles.fill,
-            { width: `${Math.round(ratio * 100)}%`, backgroundColor: theme.colors.primary },
-          ]}
-        />
-      </View>
-    </Box>
-  );
-}
-
+/**
+ * Tela principal — Biblioteca.
+ *
+ * Exibe a coleção de músicas do usuário em 4 modos:
+ * - **Todas** — lista flat alfabética com `TrackList`
+ * - **Artistas** — `SectionList` agrupada com `ArtistSection`
+ * - **Álbuns** — grid 2 colunas com `AlbumGrid`
+ * - **Gêneros** — lista com contagem com `GenreList`
+ *
+ * Pull-to-refresh inicia o scan em qualquer aba. A barra de progresso animada
+ * (`ScanProgress`) aparece no topo de todas as listas.
+ */
 export default function LibraryScreen() {
   const tracks = useLibraryStore((s) => s.tracks);
   const isScanning = useLibraryStore((s) => s.isScanning);
   const isHydrated = useLibraryStore((s) => s.isHydrated);
+  const currentTrackId = usePlayerStore((s) => s.currentTrack?.id ?? null);
   const { scan } = useLibraryScanner();
+
+  const [activeTab, setActiveTab] = useState<LibraryTab>('all');
+
+  // ──────────────────────────────────────────────────── dados derivados
+
+  const sortedTracks = useMemo(() => sortByTitle(tracks), [tracks]);
+  const artists = useMemo(() => groupByArtist(tracks), [tracks]);
+  const albums = useMemo(() => groupByAlbum(tracks), [tracks]);
+  const genres = useMemo(() => groupByGenre(tracks), [tracks]);
+
+  // ──────────────────────────────────────────────────── callbacks
+
+  const handleRefresh = useCallback(() => {
+    scan();
+  }, [scan]);
+
+  const handleTrackPress = useCallback(
+    (_track: Track, index: number) => {
+      // Navega ao player imediatamente; o áudio carrega em paralelo.
+      router.push('/player');
+      playQueue(sortedTracks, index).catch((error) =>
+        console.warn('[player] não foi possível iniciar a reprodução:', error),
+      );
+    },
+    [sortedTracks],
+  );
+
+  /** Ao tocar numa faixa dentro de um artista, toca todas as faixas daquele contexto. */
+  const handleArtistTrackPress = useCallback(
+    (_track: Track, allTracks: Track[], indexInAll: number) => {
+      router.push('/player');
+      playQueue(allTracks, indexInAll).catch((error) =>
+        console.warn('[player] não foi possível iniciar a reprodução:', error),
+      );
+    },
+    [],
+  );
+
+  /** Tocar no álbum reproduz todas as faixas dele. */
+  const handleAlbumPress = useCallback((album: Album) => {
+    if (album.tracks.length === 0) return;
+    router.push('/player');
+    playQueue(album.tracks, 0).catch((error) =>
+      console.warn('[player] não foi possível iniciar a reprodução:', error),
+    );
+  }, []);
+
+  /** Tocar no gênero reproduz todas as faixas dele. */
+  const handleGenrePress = useCallback((genre: GenreGroup) => {
+    if (genre.tracks.length === 0) return;
+    router.push('/player');
+    playQueue(genre.tracks, 0).catch((error) =>
+      console.warn('[player] não foi possível iniciar a reprodução:', error),
+    );
+  }, []);
+
+  // ──────────────────────────────────────────────────── scan progress header
+
+  const scanHeader = useMemo(() => <ScanProgress />, []);
+
+  // ──────────────────────────────────────────────────── guards
 
   // Sem este guarda, a tela de "nenhuma música" pisca a cada abertura antes de
   // a biblioteca salva terminar de carregar.
@@ -115,24 +129,54 @@ export default function LibraryScreen() {
     );
   }
 
+  // ──────────────────────────────────────────────────── render
+
   return (
-    <FlatList
-      data={tracks}
-      keyExtractor={(t) => t.id}
-      renderItem={({ item, index }) => <TrackRow track={item} index={index} />}
-      contentContainerStyle={styles.list}
-      refreshControl={
-        <RefreshControl refreshing={isScanning} onRefresh={() => scan()} tintColor="#94A3B8" />
-      }
-      ListHeaderComponent={
-        <Box gap="sm" style={styles.listHeader}>
-          <Text variant="caption" color="textSecondary">
-            {tracks.length} {tracks.length === 1 ? 'música' : 'músicas'}
-          </Text>
-          <ScanProgressBar />
-        </Box>
-      }
-    />
+    <View style={styles.container}>
+      <LibraryTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {activeTab === 'all' && (
+        <TrackList
+          tracks={sortedTracks}
+          currentTrackId={currentTrackId}
+          refreshing={isScanning}
+          onRefresh={handleRefresh}
+          onTrackPress={handleTrackPress}
+          header={scanHeader}
+        />
+      )}
+
+      {activeTab === 'artists' && (
+        <ArtistSection
+          artists={artists}
+          currentTrackId={currentTrackId}
+          refreshing={isScanning}
+          onRefresh={handleRefresh}
+          onTrackPress={handleArtistTrackPress}
+          header={scanHeader}
+        />
+      )}
+
+      {activeTab === 'albums' && (
+        <AlbumGrid
+          albums={albums}
+          refreshing={isScanning}
+          onRefresh={handleRefresh}
+          onAlbumPress={handleAlbumPress}
+          header={scanHeader}
+        />
+      )}
+
+      {activeTab === 'genres' && (
+        <GenreList
+          genres={genres}
+          refreshing={isScanning}
+          onRefresh={handleRefresh}
+          onGenrePress={handleGenrePress}
+          header={scanHeader}
+        />
+      )}
+    </View>
   );
 }
 
@@ -145,38 +189,5 @@ const styles = StyleSheet.create({
     left: 24,
     right: 24,
     bottom: 110,
-  },
-  list: {
-    paddingHorizontal: 16,
-    // A tab bar flutua sobre o conteudo (position: absolute), entao o ultimo
-    // item precisa deste respiro para nao ficar escondido atras dela.
-    paddingBottom: 120,
-  },
-  listHeader: {
-    paddingVertical: 12,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-  },
-  thumb: {
-    width: 48,
-    height: 48,
-  },
-  rowText: {
-    flex: 1,
-    gap: 2,
-  },
-  track: {
-    height: 4,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    borderRadius: 2,
   },
 });
