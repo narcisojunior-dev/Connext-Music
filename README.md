@@ -295,6 +295,22 @@ de volta.
 A cor do gradiente e do placeholder vem do hash do id da faixa, **não** da artwork. Extrair a cor
 dominante da imagem é escopo da issue #16.
 
+### Mini player
+
+Barra acima da tab bar com artwork, título, artista, play/pause, próxima e uma linha fina de
+progresso. Vive em `(tabs)/_layout.tsx` como **irmão** do navegador, não dentro de uma tela — assim
+sobrevive à troca de abas em vez de remontar a cada navegação.
+
+Gestos: toque abre o player, arrasto horizontal pula faixa, arrasto para baixo encerra.
+
+> Arrastar para baixo **para a reprodução**, não apenas esconde a barra. Só esconder deixaria música
+> tocando sem nenhum controle na tela, e o usuário não teria como voltar a ela.
+
+O espaço reservado no fim das listas vem de `useContentBottomInset()`, que soma tab bar + área
+segura + mini player **quando ele está visível**. Reservar a altura fixa deixaria um vão visível
+quando nada está tocando; era por isso que as quatro listas repetiam um `paddingBottom: 120`
+hardcoded, agora substituído.
+
 ### Fila e modos
 
 ```ts

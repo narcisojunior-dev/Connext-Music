@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { RefreshControl, SectionList, StyleSheet, View } from 'react-native';
 
 import { TrackItem } from '@/components/library/TrackItem';
+import { useContentBottomInset } from '@/hooks/use-content-inset';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
@@ -35,6 +36,7 @@ export function ArtistSection({
   onTrackPress,
   header,
 }: ArtistSectionProps) {
+  const bottomInset = useContentBottomInset();
   const theme = useTheme();
 
   const sections: Section[] = useMemo(
@@ -117,7 +119,7 @@ export function ArtistSection({
       renderSectionHeader={renderSectionHeader}
       keyExtractor={(item) => item.id}
       stickySectionHeadersEnabled
-      contentContainerStyle={styles.list}
+      contentContainerStyle={[styles.list, { paddingBottom: bottomInset }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#94A3B8" />
       }
@@ -128,9 +130,7 @@ export function ArtistSection({
 }
 
 const styles = StyleSheet.create({
-  list: {
-    paddingBottom: 120,
-  },
+  list: {},
   listHeader: {
     paddingHorizontal: 16,
     paddingVertical: 12,

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { Box } from '@/components/ui/box';
+import { useContentBottomInset } from '@/hooks/use-content-inset';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
 import type { Album } from '@/types/album';
@@ -91,6 +92,7 @@ function AlbumCard({ album, size, onPress }: { album: Album; size: number; onPre
  * duas colunas com o gap definido.
  */
 export function AlbumGrid({ albums, refreshing, onRefresh, onAlbumPress, header }: AlbumGridProps) {
+  const bottomInset = useContentBottomInset();
   const { width: screenWidth } = useWindowDimensions();
   const cardSize = Math.floor((screenWidth - HORIZONTAL_PADDING * 2 - GAP) / NUM_COLUMNS);
 
@@ -131,7 +133,7 @@ export function AlbumGrid({ albums, refreshing, onRefresh, onAlbumPress, header 
       keyExtractor={(item) => item.id}
       numColumns={NUM_COLUMNS}
       columnWrapperStyle={styles.row}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={[styles.list, { paddingBottom: bottomInset }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#94A3B8" />
       }
@@ -144,7 +146,6 @@ export function AlbumGrid({ albums, refreshing, onRefresh, onAlbumPress, header 
 const styles = StyleSheet.create({
   list: {
     paddingHorizontal: HORIZONTAL_PADDING,
-    paddingBottom: 120,
   },
   listHeader: {
     paddingVertical: 12,

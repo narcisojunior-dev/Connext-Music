@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { TrackItem, TRACK_ITEM_HEIGHT } from '@/components/library/TrackItem';
+import { useContentBottomInset } from '@/hooks/use-content-inset';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import type { Track } from '@/types/track';
@@ -44,6 +45,7 @@ export function TrackList({
   header,
   emptyText = 'Nenhuma música encontrada.\nPuxe para baixo para escanear.',
 }: TrackListProps) {
+  const bottomInset = useContentBottomInset();
   const renderItem = useCallback(
     ({ item, index }: { item: Track; index: number }) => (
       <TrackItem
@@ -114,7 +116,7 @@ export function TrackList({
       removeClippedSubviews
       maxToRenderPerBatch={15}
       windowSize={7}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={[styles.list, { paddingBottom: bottomInset }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#94A3B8" />
       }
@@ -127,9 +129,6 @@ export function TrackList({
 const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 16,
-    // A tab bar flutua sobre o conteúdo (position: absolute), então o último
-    // item precisa de padding para não ficar escondido atrás dela.
-    paddingBottom: 120,
   },
   listHeader: {
     paddingVertical: 12,

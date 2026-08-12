@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { Box } from '@/components/ui/box';
+import { useContentBottomInset } from '@/hooks/use-content-inset';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
 import type { GenreGroup } from '@/utils/library-helpers';
@@ -73,6 +74,7 @@ function GenreRow({ genre, onPress }: { genre: GenreGroup; onPress: () => void }
  * Ordenada por contagem decrescente (gêneros mais populares no topo).
  */
 export function GenreList({ genres, refreshing, onRefresh, onGenrePress, header }: GenreListProps) {
+  const bottomInset = useContentBottomInset();
   const renderItem = useCallback(
     ({ item }: { item: GenreGroup }) => (
       <GenreRow genre={item} onPress={() => onGenrePress(item)} />
@@ -120,7 +122,7 @@ export function GenreList({ genres, refreshing, onRefresh, onGenrePress, header 
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       getItemLayout={getItemLayout}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={[styles.list, { paddingBottom: bottomInset }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#94A3B8" />
       }
@@ -133,7 +135,6 @@ export function GenreList({ genres, refreshing, onRefresh, onGenrePress, header 
 const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 16,
-    paddingBottom: 120,
   },
   listHeader: {
     paddingVertical: 12,
