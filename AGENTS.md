@@ -13,5 +13,6 @@ Utilize the following workspace-installed skills during development:
 ## Task Lifecycle and Graphify Updates
 
 - **Sequential Issue Progress:** You MUST develop, test, and commit one issue at a time. Only start the next issue in the sequence after the current one has been fully implemented, tested, and committed.
-- After finishing and successfully testing every single task/issue, you **MUST** run the `graphify` skill using `/graphify . --update` to keep the project knowledge graph and `GRAPH_REPORT.md` updated.
+- **Documentation Updates:** The project [README.md](file:///Users/narcisojunior/Documents/repositorios/app_musica/Connext-Music/README.md) MUST be updated after completing any significant issue, documenting the newly added features, how they work, and how the app works as a whole.
+- **Graphify:** After finishing and successfully testing every single task/issue, you **MUST** run the `graphify` skill using `/graphify . --update` to keep the project knowledge graph and `GRAPH_REPORT.md` updated.
 - Make sure to review the graph report or query it if you need architectural guidance.
