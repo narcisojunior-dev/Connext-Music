@@ -14,7 +14,7 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-**15 de 27 issues concluídas.** Milestones v0.1 a v0.4 completos; v0.5 em andamento.
+**16 de 27 issues concluídas.** Milestones v0.1 a v0.4 completos; v0.5 em andamento.
 
 | Issue                                                               | Escopo                               | Milestone | Status |
 | ------------------------------------------------------------------- | ------------------------------------ | --------- | ------ |
@@ -33,8 +33,10 @@ background playback, lock screen e Control Center.
 | [#13](https://github.com/narcisojunior-dev/Connext-Music/issues/13) | Busca global                         | v0.5      | ✅     |
 | [#14](https://github.com/narcisojunior-dev/Connext-Music/issues/14) | Playlists: CRUD e reordenação        | v0.5      | ✅     |
 | [#15](https://github.com/narcisojunior-dev/Connext-Music/issues/15) | Favoritos + ações de long-press      | v0.5      | ✅     |
-| [#16](https://github.com/narcisojunior-dev/Connext-Music/issues/16) | Animações e microinterações          | v0.5      | ⏳     |
+| [#16](https://github.com/narcisojunior-dev/Connext-Music/issues/16) | Animações e microinterações          | v0.5      | ✅\*   |
 | [#17](https://github.com/narcisojunior-dev/Connext-Music/issues/17) | Estatísticas de reprodução           | v0.6      | ⏳     |
+
+\* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.
 
 O app já faz o ciclo inteiro: escaneia a pasta `Documents/`, lê as tags, persiste a biblioteca,
 reproduz com controles de fila e modos, busca, organiza em playlists e favoritos. As telas de
@@ -131,6 +133,9 @@ reproduz e não há como automatizar o toque:
 | #11     | Arrastar o slider de progresso; retorno háptico dos botões                                            |
 | #10     | Scroll a 60fps com mais de 100 faixas                                                                 |
 | #12     | Gestos do mini player: toque abre o player, arrasto horizontal pula faixa, arrasto para baixo encerra |
+| #14, #15 | Arrastar para reordenar playlist; menu de long-press; compartilhar e remover faixa                    |
+| #16     | Escala do play/pause, pulso e crossfade da capa, marquee, subida do mini player — e se rodam a 60fps |
+| #16     | Intensidade do háptico por intenção: leve no transporte, média ao favoritar, forte no long-press     |
 
 > A correção do commit `6e1e244` foi motivada por um destes: opções de sessão de áudio inválidas
 > para a categoria `playback` impediam o Now Playing de aparecer. O simulador aceitava a
