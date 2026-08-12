@@ -7,7 +7,14 @@ import { Box } from '@/components/ui/box';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { Text } from '@/components/ui/text';
-import { seekTo, skipToNext, skipToPrevious, togglePlay } from '@/services/player/queue-manager';
+import {
+  cycleRepeatMode,
+  seekTo,
+  skipToNext,
+  skipToPrevious,
+  togglePlay,
+  toggleShuffle,
+} from '@/services/player/queue-manager';
 import { usePlayerStore } from '@/stores/player-store';
 
 /** mm:ss para os marcadores da barra de progresso. */
@@ -52,8 +59,6 @@ export default function PlayerScreen() {
 
   const position = usePlayerStore((s) => s.position);
   const duration = usePlayerStore((s) => s.duration);
-  const cycleRepeatMode = usePlayerStore((s) => s.cycleRepeatMode);
-  const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
 
   return (
     <View style={styles.container}>
@@ -84,7 +89,7 @@ export default function PlayerScreen() {
               accessibilityLabel="Modo aleatório"
               size="sm"
               active={shuffleMode}
-              onPress={toggleShuffle}
+              onPress={() => void toggleShuffle()}
             />
             <IconButton
               name="play-skip-back"
@@ -108,7 +113,7 @@ export default function PlayerScreen() {
               accessibilityLabel="Repetir"
               size="sm"
               active={repeatMode !== 'off'}
-              onPress={cycleRepeatMode}
+              onPress={() => void cycleRepeatMode()}
             />
           </Box>
 

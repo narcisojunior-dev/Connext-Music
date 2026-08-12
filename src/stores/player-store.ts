@@ -9,6 +9,13 @@ export interface PlayerState {
   currentTrack: Track | null;
   /** Fila na ordem de reproducao. Com shuffle ligado, ja vem embaralhada. */
   queue: Track[];
+  /**
+   * Ordem antes do shuffle, para poder ser restaurada ao desligar.
+   *
+   * `null` enquanto o shuffle nunca foi ligado. Sem guardar isto, desligar o
+   * shuffle deixaria o usuario preso na ordem aleatoria.
+   */
+  originalOrder: Track[] | null;
   /** Indice de `currentTrack` dentro de `queue`, ou -1 se a fila estiver vazia. */
   currentIndex: number;
   isPlaying: boolean;
@@ -30,8 +37,6 @@ export interface PlayerActions {
   moveQueueItem: (from: number, to: number) => void;
 
   setCurrentIndex: (index: number) => void;
-  next: () => void;
-  previous: () => void;
 
   setIsPlaying: (isPlaying: boolean) => void;
   togglePlay: () => void;
@@ -47,6 +52,7 @@ export type PlayerStore = PlayerState & PlayerActions;
 const initialState: PlayerState = {
   currentTrack: null,
   queue: [],
+  originalOrder: null,
   currentIndex: -1,
   isPlaying: false,
   repeatMode: 'off',
@@ -67,6 +73,22 @@ function withIndex(
   };
 }
 
+/**
+ * Fisher-Yates.
+ *
+ * Uma permutacao completa, nao sorteios independentes: e isso que garante que
+ * toda faixa toque uma vez antes de qualquer repeticao. Sortear a proxima faixa
+ * a cada troca repetiria musicas e deixaria outras de fora.
+ */
+function shuffle<T>(items: T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 const REPEAT_CYCLE: Record<RepeatMode, RepeatMode> = {
   off: 'track',
   track: 'queue',
@@ -85,7 +107,7 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
   ...initialState,
 
   setQueue: (tracks, startIndex = 0) =>
-    set({ queue: tracks, position: 0, ...withIndex(tracks, startIndex) }),
+    set({ queue: tracks, originalOrder: null, position: 0, ...withIndex(tracks, startIndex) }),
 
   addToQueue: (track) => set((s) => ({ queue: [...s.queue, track] })),
 
@@ -97,7 +119,7 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
       return { queue, ...withIndex(queue, nextIndex) };
     }),
 
-  clearQueue: () => set({ queue: [], currentIndex: -1, currentTrack: null }),
+  clearQueue: () => set({ queue: [], originalOrder: null, currentIndex: -1, currentTrack: null }),
 
   moveQueueItem: (from, to) =>
     set((s) => {
@@ -114,50 +136,32 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
 
   setCurrentIndex: (index) => set((s) => ({ position: 0, ...withIndex(s.queue, index) })),
 
-  next: () => {
-    const { queue, currentIndex, repeatMode } = get();
-    if (queue.length === 0) return;
-    if (repeatMode === 'track') {
-      set({ position: 0 });
-      return;
-    }
-    const candidate = currentIndex + 1;
-    if (candidate >= queue.length) {
-      // Fim da fila: com repeat 'queue' volta ao inicio, senao para.
-      if (repeatMode === 'queue') {
-        set({ position: 0, ...withIndex(queue, 0) });
-      } else {
-        set({ isPlaying: false });
-      }
-      return;
-    }
-    set({ position: 0, ...withIndex(queue, candidate) });
-  },
-
-  previous: () => {
-    const { queue, currentIndex, position, repeatMode } = get();
-    if (queue.length === 0) return;
-    // Convencao dos players: depois de 3s, "anterior" reinicia a faixa atual.
-    if (position > 3) {
-      set({ position: 0 });
-      return;
-    }
-    const candidate = currentIndex - 1;
-    if (candidate < 0) {
-      if (repeatMode === 'queue') {
-        set({ position: 0, ...withIndex(queue, queue.length - 1) });
-      } else {
-        set({ position: 0 });
-      }
-      return;
-    }
-    set({ position: 0, ...withIndex(queue, candidate) });
-  },
-
   setIsPlaying: (isPlaying) => set({ isPlaying }),
   togglePlay: () => set((s) => ({ isPlaying: !s.isPlaying })),
   cycleRepeatMode: () => set((s) => ({ repeatMode: REPEAT_CYCLE[s.repeatMode] })),
-  toggleShuffle: () => set((s) => ({ shuffleMode: !s.shuffleMode })),
+  toggleShuffle: () =>
+    set((s) => {
+      if (s.queue.length === 0) return { shuffleMode: !s.shuffleMode };
+
+      if (s.shuffleMode) {
+        // Desligando: volta a ordem original e reencontra a faixa atual nela.
+        const queue = s.originalOrder ?? s.queue;
+        const index = s.currentTrack ? queue.indexOf(s.currentTrack) : -1;
+        return { shuffleMode: false, queue, originalOrder: null, ...withIndex(queue, index) };
+      }
+
+      // Ligando: a faixa atual continua tocando, entao ela fica na posicao 0 e
+      // so o que vem depois e embaralhado.
+      const rest = s.queue.filter((_, i) => i !== s.currentIndex);
+      const shuffled = shuffle(rest);
+      const queue = s.currentTrack ? [s.currentTrack, ...shuffled] : shuffled;
+      return {
+        shuffleMode: true,
+        queue,
+        originalOrder: s.queue,
+        ...withIndex(queue, s.currentTrack ? 0 : -1),
+      };
+    }),
 
   setProgress: (position, duration) => set((s) => ({ position, duration: duration ?? s.duration })),
 

@@ -14,17 +14,18 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-| Issue                                                             | Escopo                               | Status       |
-| ----------------------------------------------------------------- | ------------------------------------ | ------------ |
-| [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1) | Setup: dev client + arquitetura base | ✅ Concluída |
-| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2) | Design System: tokens e componentes  | ✅ Concluída |
-| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3) | Navegação: tabs + player modal       | ✅ Concluída |
-| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4) | Estado global: Zustand + types       | ✅ Concluída |
-| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5) | Scanner de arquivos iOS              | ✅ Concluída |
-| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6) | Metadados ID3 + artwork              | ✅ Concluída |
-| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7) | Persistência + scan incremental      | ✅ Concluída |
-| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8) | Player de áudio + background         | ✅ Concluída |
-| [#9](https://github.com/narcisojunior-dev/Connext-Music/issues/9) | Fila, shuffle e repeat               | ⏳ Próxima   |
+| Issue                                                               | Escopo                               | Status       |
+| ------------------------------------------------------------------- | ------------------------------------ | ------------ |
+| [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1)   | Setup: dev client + arquitetura base | ✅ Concluída |
+| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2)   | Design System: tokens e componentes  | ✅ Concluída |
+| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3)   | Navegação: tabs + player modal       | ✅ Concluída |
+| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4)   | Estado global: Zustand + types       | ✅ Concluída |
+| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5)   | Scanner de arquivos iOS              | ✅ Concluída |
+| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6)   | Metadados ID3 + artwork              | ✅ Concluída |
+| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7)   | Persistência + scan incremental      | ✅ Concluída |
+| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8)   | Player de áudio + background         | ✅ Concluída |
+| [#9](https://github.com/narcisojunior-dev/Connext-Music/issues/9)   | Fila, shuffle e repeat               | ✅ Concluída |
+| [#10](https://github.com/narcisojunior-dev/Connext-Music/issues/10) | Tela de Biblioteca completa          | ⏳ Próxima   |
 
 As telas existem como placeholders "em construção", cada uma marcada com a issue que a implementa.
 A navegação inteira já está montada e pode ser percorrida.
@@ -230,6 +231,31 @@ await skipToNext();
 **O estado real do áudio manda.** A UI reflete o player, nunca o contrário: `PlaybackState` e
 `PlaybackProgressUpdated` escrevem no `usePlayerStore`, então a tela fica correta mesmo quando o
 comando veio da tela de bloqueio e não de um toque no app.
+
+### Fila e modos
+
+```ts
+await setQueue(tracks);
+await addToQueue(track);
+await removeFromQueue(2);
+await moveQueueItem(0, 3);
+getQueue();
+await cycleRepeatMode(); // off → track → queue → off
+await toggleShuffle();
+```
+
+Cada operação toca os dois lados: o store (que a UI lê) e o Track Player (que toca). Duas decisões
+de projeto por trás disso:
+
+- **Repeat é configurado no Track Player, não decidido em JS.** É ele que escolhe o que tocar quando
+  uma faixa acaba; uma decisão paralela do lado do JS chegaria depois do silêncio entre as faixas.
+- **Ligar o shuffle não interrompe a faixa atual.** Ela fica na posição 0 e só o que vem depois é
+  reordenado, via `removeUpcomingTracks` + `add`. Reconstruir a fila com `reset` cortaria o áudio no
+  meio.
+
+O embaralhamento é um Fisher-Yates — uma permutação completa, não sorteios independentes. É isso que
+garante que **toda faixa toque uma vez antes de qualquer repetição**. O store guarda a ordem original
+em `originalOrder` para poder restaurá-la ao desligar o shuffle, reencontrando a faixa atual nela.
 
 Fone desconectado pausa a reprodução em vez de continuar no alto-falante — retomar sozinho quando o
 fone volta faria a música tocar alto em situações indesejadas.
