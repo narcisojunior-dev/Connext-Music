@@ -17,10 +17,12 @@ background playback, lock screen e Control Center.
 | Issue                                                             | Escopo                               | Status       |
 | ----------------------------------------------------------------- | ------------------------------------ | ------------ |
 | [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1) | Setup: dev client + arquitetura base | ✅ Concluída |
-| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2) | Design System                        | ⏳ Próxima   |
+| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2) | Design System: tokens e componentes  | ✅ Concluída |
+| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3) | Navegação: tabs + player modal       | ⏳ Próxima   |
 
-O app ainda exibe a tela inicial do template Expo. As issues #2 e #3 substituem essa tela pelo
-design system e pela navegação em tabs.
+A tela inicial é hoje uma **demonstração do design system** (`src/app/index.tsx`), usada para
+verificar tokens e componentes na tela. A issue #3 reestrutura `src/app/` em tabs e a substitui
+pela Biblioteca.
 
 ---
 
@@ -122,9 +124,57 @@ padrão no SDK 57) — **reinicie o bundler** após alterar o `tsconfig.json`.
 | `@utils/*`      | `src/utils/*`      |
 | `@theme/*`      | `src/theme/*`      |
 
-`src/theme/index.ts` é hoje uma ponte que reexporta os tokens do template em
-`src/constants/theme.ts`. A issue #2 substitui o conteúdo mantendo `@theme` como ponto único de
-entrada, de modo que os imports existentes não precisem mudar.
+---
+
+## Design System
+
+O app é **dark-only** por design: o conteúdo principal é a artwork do álbum, e um fundo escuro
+evita que a UI compita com a capa. Não existe variante light — `app.json` fixa
+`userInterfaceStyle: "dark"` para que nem a tela de splash pisque claro.
+
+`src/theme/` (alias `@theme`) é a fonte única de verdade:
+
+| Arquivo         | Conteúdo                                                                        |
+| --------------- | ------------------------------------------------------------------------------- |
+| `colors.ts`     | 15 tokens da seção 2.1 do PRD (`background`, `surface`, `primary`, `accent`, …) |
+| `typography.ts` | 6 escalas: Display, Heading, Title, Body, Caption, Overline                     |
+| `spacing.ts`    | Escala 4pt (`xs`…`xxxl`), raios, sombra dos cards e durações                    |
+| `index.ts`      | Monta e exporta o objeto `theme`                                                |
+
+Em componentes, use o hook em vez de importar os tokens direto — ele lê o mesmo objeto pelo
+Context e deixa a porta aberta para tema dinâmico (cores derivadas da artwork, issue #16):
+
+```tsx
+const { colors, spacing } = useTheme();
+```
+
+### Componentes base
+
+Todos em `src/components/ui/`. Recebem **tokens**, não números — é o que mantém o espaçamento e as
+cores consistentes conforme o app cresce.
+
+| Componente   | Uso                                                                 |
+| ------------ | ------------------------------------------------------------------- |
+| `Box`        | Container: `background`, `padding`, `gap`, `radius`, `elevated`     |
+| `Text`       | Tipografia: `variant` (display…overline) e `color`                  |
+| `Button`     | `primary` \| `secondary` \| `ghost`, com `loading` e `fullWidth`    |
+| `IconButton` | Botão circular (Ionicons), tamanhos `sm`/`md`/`lg`, estado `active` |
+
+```tsx
+<Box background="surface" padding="lg" radius="card" gap="sm" elevated>
+  <Text variant="title">Nome da música</Text>
+  <Text variant="caption" color="textSecondary">
+    Artista
+  </Text>
+</Box>
+```
+
+`ThemeProvider` (em `src/app/_layout.tsx`) envolve o app inteiro, junto do provider de navegação
+do expo-router — os dois apontam para a mesma paleta para não haver flash claro entre telas.
+
+> `src/constants/theme.ts` é resíduo do template Expo e está congelado: `Colors` foi repontado para
+> a paleta dark, e o arquivo sai do projeto junto com as telas de exemplo na issue #3. Não adicione
+> nada lá.
 
 ---
 

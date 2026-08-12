@@ -1,18 +1,38 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { DarkTheme, ThemeProvider as NavigationThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
+import { ThemeProvider } from '@/components/theme/theme-provider';
+import { theme } from '@theme/index';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+/**
+ * Dois providers, dois papeis: `ThemeProvider` serve os tokens do design system
+ * aos nossos componentes, enquanto o do expo-router pinta o chrome de navegacao
+ * (headers, fundo das transicoes) que nao passa por eles. Os dois apontam para a
+ * mesma paleta para nao existir um flash claro entre telas.
+ */
+const navigationTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: theme.colors.background,
+    card: theme.colors.surface,
+    text: theme.colors.textPrimary,
+    border: theme.colors.border,
+    primary: theme.colors.primary,
+  },
+};
+
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+    <ThemeProvider>
+      <NavigationThemeProvider value={navigationTheme}>
+        <AnimatedSplashOverlay />
+        <AppTabs />
+      </NavigationThemeProvider>
     </ThemeProvider>
   );
 }
