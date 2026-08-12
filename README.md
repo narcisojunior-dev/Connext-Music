@@ -22,7 +22,8 @@ background playback, lock screen e Control Center.
 | [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4) | Estado global: Zustand + types       | ✅ Concluída |
 | [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5) | Scanner de arquivos iOS              | ✅ Concluída |
 | [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6) | Metadados ID3 + artwork              | ✅ Concluída |
-| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7) | Persistência da biblioteca           | ⏳ Próxima   |
+| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7) | Persistência + scan incremental      | ✅ Concluída |
+| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8) | Player de áudio (Track Player)       | ⏳ Próxima   |
 
 As telas existem como placeholders "em construção", cada uma marcada com a issue que a implementa.
 A navegação inteira já está montada e pode ser percorrida.
@@ -205,6 +206,38 @@ escondido atrás da barra.
 
 As telas ainda não implementadas usam o componente `PlaceholderScreen`, que mostra o título, o que
 a tela vai fazer e a issue que a implementa.
+
+---
+
+## Persistência e scan incremental
+
+A biblioteca é salva no AsyncStorage e recarregada na abertura do app, então as faixas aparecem
+sem esperar um scan. 500 faixas carregam em ~9 ms no simulador.
+
+O scan é **incremental por construção**: `generateTrackId` já embute a data de modificação do
+arquivo, então "arquivo inalterado" é literalmente "mesmo id". Um scan reaproveita essas faixas sem
+reabrir o arquivo — a leitura das tags é a parte cara — e só processa o que é novo ou mudou. Na
+prática, o segundo scan da mesma pasta cai de ~42 ms para ~17 ms.
+
+```ts
+const { tracks, reused, processed, removed, remappedIds } = await scanMusicLibrary({ knownTracks });
+```
+
+Duas consequências que valem conhecer:
+
+- **`playCount`, `lastPlayedAt` e `isFavorite` são carregados adiante.** Esses campos não vêm das
+  tags, são histórico de uso. Ao reprocessar um arquivo reeditado, a faixa nova nasce zerada — sem
+  esse cuidado o usuário perderia os favoritos toda vez que corrigisse uma tag.
+- **Editar um arquivo muda o `id` dele.** O scan devolve `remappedIds` (antigo → novo) e as
+  playlists são remapeadas, senão a faixa sumiria delas silenciosamente.
+
+O formato salvo é versionado: se `SCHEMA_VERSION` não bater, o cache é descartado e o app
+reescaneia, em vez de entregar objetos com campos faltando para a UI.
+
+> ⚠️ `hydrate()` é deduplicado por uma promessa em andamento e não sobrescreve um scan que tenha
+> terminado durante a leitura do disco. As duas coisas foram necessárias: o guarda `isHydrated`
+> sozinho é checado **antes** do `await`, então duas telas montando no mesmo frame passavam por ele
+> e a leitura mais lenta apagava o resultado do scan.
 
 ---
 

@@ -4,9 +4,11 @@ import '@/global.css';
 
 import { DarkTheme, ThemeProvider as NavigationThemeProvider, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ThemeProvider } from '@/components/theme/theme-provider';
+import { useLibraryStore } from '@/stores/library-store';
 import { theme } from '@theme/index';
 
 SplashScreen.preventAutoHideAsync();
@@ -30,6 +32,14 @@ const navigationTheme = {
 };
 
 export default function RootLayout() {
+  const hydrate = useLibraryStore((s) => s.hydrate);
+
+  // Le a biblioteca salva assim que o app abre, para as telas ja nascerem com
+  // as faixas em vez de esperar um scan.
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
   return (
     <ThemeProvider>
       <NavigationThemeProvider value={navigationTheme}>

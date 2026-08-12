@@ -21,6 +21,14 @@ export interface PlaylistActions {
 
   /** Remove um `trackId` de todas as playlists — usado quando o arquivo some do disco. */
   purgeTrack: (trackId: string) => void;
+  /**
+   * Troca ids antigos pelos novos apos um scan.
+   *
+   * O `id` de uma faixa embute a data de modificacao do arquivo, entao editar
+   * as tags de uma musica gera um id novo. Sem este remapeamento, as playlists
+   * continuariam apontando para o id antigo e a faixa sumiria delas.
+   */
+  remapTrackIds: (mapping: Record<string, string>) => void;
   setPlaylists: (playlists: Playlist[]) => void;
   clear: () => void;
 }
@@ -108,6 +116,21 @@ export const usePlaylistStore = create<PlaylistStore>()((set) => ({
           : p,
       ),
     })),
+
+  remapTrackIds: (mapping) =>
+    set((s) => {
+      if (Object.keys(mapping).length === 0) return s;
+      return {
+        playlists: s.playlists.map((p) => {
+          if (!p.trackIds.some((id) => id in mapping)) return p;
+          return {
+            ...p,
+            trackIds: p.trackIds.map((id) => mapping[id] ?? id),
+            updatedAt: Date.now(),
+          };
+        }),
+      };
+    }),
 
   setPlaylists: (playlists) => set({ playlists }),
   clear: () => set({ playlists: [] }),

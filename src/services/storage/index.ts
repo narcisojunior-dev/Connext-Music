@@ -1,3 +1,7 @@
 // Persistencia local da biblioteca e preferencias.
-// Preenchido na Issue #7 — Persistencia da Biblioteca.
-export {};
+export {
+  addTracksToLibrary,
+  clearLibrary,
+  loadLibrary,
+  saveLibrary,
+} from '@/services/storage/library-storage';

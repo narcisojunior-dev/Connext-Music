@@ -90,7 +90,14 @@ function ScanProgressBar() {
 export default function LibraryScreen() {
   const tracks = useLibraryStore((s) => s.tracks);
   const isScanning = useLibraryStore((s) => s.isScanning);
+  const isHydrated = useLibraryStore((s) => s.isHydrated);
   const { scan } = useLibraryScanner();
+
+  // Sem este guarda, a tela de "nenhuma música" pisca a cada abertura antes de
+  // a biblioteca salva terminar de carregar.
+  if (!isHydrated) {
+    return <View style={styles.container} />;
+  }
 
   if (tracks.length === 0 && !isScanning) {
     return (
@@ -102,7 +109,7 @@ export default function LibraryScreen() {
           issue="Issue #10"
         />
         <View style={styles.actions}>
-          <Button title="Escanear biblioteca" variant="secondary" onPress={scan} />
+          <Button title="Escanear biblioteca" variant="secondary" onPress={() => scan()} />
         </View>
       </View>
     );
@@ -115,7 +122,7 @@ export default function LibraryScreen() {
       renderItem={({ item, index }) => <TrackRow track={item} index={index} />}
       contentContainerStyle={styles.list}
       refreshControl={
-        <RefreshControl refreshing={isScanning} onRefresh={scan} tintColor="#94A3B8" />
+        <RefreshControl refreshing={isScanning} onRefresh={() => scan()} tintColor="#94A3B8" />
       }
       ListHeaderComponent={
         <Box gap="sm" style={styles.listHeader}>

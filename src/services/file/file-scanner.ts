@@ -165,6 +165,47 @@ export interface ScanResult {
   failed: number;
   /** Duracao do scan em milissegundos. */
   elapsedMs: number;
+  /** Faixas reaproveitadas da biblioteca anterior, sem reler as tags. */
+  reused: number;
+  /** Arquivos novos ou modificados que precisaram ser lidos. */
+  processed: number;
+  /** Faixas que sumiram do disco e sairam da biblioteca. */
+  removed: number;
+  /**
+   * `id` antigo -> `id` novo, para arquivos que mudaram de conteudo.
+   *
+   * Quem guarda referencias por `id` (playlists) precisa disto para nao ficar
+   * apontando para faixas que deixaram de existir.
+   */
+  remappedIds: Record<string, string>;
+}
+
+export interface ScanOptions {
+  onProgress?: ScanProgressCallback;
+  onComplete?: (tracks: Track[]) => void;
+  /**
+   * Biblioteca ja conhecida. Passando isto, o scan vira incremental: arquivos
+   * inalterados sao reaproveitados em vez de reprocessados.
+   */
+  knownTracks?: Track[];
+}
+
+/**
+ * Preserva o que e do usuario, nao do arquivo.
+ *
+ * `playCount`, `lastPlayedAt` e `isFavorite` nao vem das tags — sao historico
+ * de uso. Ao reprocessar um arquivo (porque ele foi reeditado, por exemplo),
+ * a faixa nova nasce zerada, e sem isto o usuario perderia os favoritos toda
+ * vez que renomeasse uma tag.
+ */
+function carryUserData(track: Track, previous: Track | undefined): Track {
+  if (!previous) return track;
+  return {
+    ...track,
+    playCount: previous.playCount,
+    lastPlayedAt: previous.lastPlayedAt,
+    isFavorite: previous.isFavorite,
+  };
 }
 
 /**
@@ -182,13 +223,26 @@ export interface ScanResult {
  * cada {@link YIELD_EVERY} arquivos, o React consegue pintar os quadros
  * intermediarios e o progresso fica visivel.
  */
-export async function scanMusicLibrary(
-  onProgress?: ScanProgressCallback,
-  onComplete?: (tracks: Track[]) => void,
-): Promise<ScanResult> {
+export async function scanMusicLibrary({
+  onProgress,
+  onComplete,
+  knownTracks = [],
+}: ScanOptions = {}): Promise<ScanResult> {
   const startedAt = Date.now();
+
+  // Dois indices da biblioteca anterior, com papeis distintos:
+  // por `id` diz "este arquivo esta identico" (o id ja embute a data de
+  // modificacao); por `url` diz "este e o mesmo arquivo, mesmo que o conteudo
+  // tenha mudado" — e o que permite carregar o historico de uso adiante.
+  const knownById = new Map(knownTracks.map((t) => [t.id, t]));
+  const knownByUrl = new Map(knownTracks.map((t) => [t.url, t]));
+  const survivingIds = new Set<string>();
+  const remappedIds: Record<string, string> = {};
+
   const tracks: Track[] = [];
   let failed = 0;
+  let reused = 0;
+  let processed = 0;
 
   const documents = new Directory(Paths.document);
   const files = collectAudioFiles(documents);
@@ -196,12 +250,29 @@ export async function scanMusicLibrary(
 
   for (let i = 0; i < total; i++) {
     const file = files[i];
-    const track = processAudioFile(file);
+    const expectedId = generateTrackId(file.uri, file.lastModified ?? 0);
+    const unchanged = knownById.get(expectedId);
 
-    if (track) {
-      tracks.push(track);
+    if (unchanged) {
+      // Arquivo identico ao do ultimo scan: reaproveita e economiza a leitura
+      // das tags, que e a parte cara do processo.
+      tracks.push(unchanged);
+      survivingIds.add(unchanged.id);
+      reused++;
     } else {
-      failed++;
+      const previous = knownByUrl.get(file.uri);
+      const track = processAudioFile(file);
+
+      if (track) {
+        tracks.push(carryUserData(track, previous));
+        survivingIds.add(track.id);
+        if (previous && previous.id !== track.id) {
+          remappedIds[previous.id] = track.id;
+        }
+      } else {
+        failed++;
+      }
+      processed++;
     }
 
     onProgress?.(i + 1, total, file.name);
@@ -214,7 +285,18 @@ export async function scanMusicLibrary(
   const unique = removeDuplicates(tracks);
   unique.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
 
+  // O que estava salvo e nao sobreviveu: arquivo apagado ou modificado.
+  const removed = knownTracks.filter((t) => !survivingIds.has(t.id)).length;
+
   onComplete?.(unique);
 
-  return { tracks: unique, failed, elapsedMs: Date.now() - startedAt };
+  return {
+    tracks: unique,
+    failed,
+    elapsedMs: Date.now() - startedAt,
+    reused,
+    processed,
+    removed,
+    remappedIds,
+  };
 }

@@ -10,7 +10,7 @@ export {
   shouldSkipDirectory,
   SUPPORTED_EXTENSIONS,
 } from '@/services/file/file-scanner';
-export type { ScanProgressCallback, ScanResult } from '@/services/file/file-scanner';
+export type { ScanOptions, ScanProgressCallback, ScanResult } from '@/services/file/file-scanner';
 
 export {
   clearArtworkCache,
