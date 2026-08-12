@@ -1,5 +1,6 @@
 import { Directory, File, Paths } from 'expo-file-system';
 
+import { extractMetadata } from '@/services/file/metadata-extractor';
 import { SUPPORTED_EXTENSIONS, type Track } from '@/types/track';
 import { generateTrackId } from '@/utils/id-generator';
 
@@ -100,11 +101,10 @@ export function collectAudioFiles(directory: Directory): File[] {
 }
 
 /**
- * Monta a `Track` de um arquivo de audio.
+ * Monta a `Track` de um arquivo de audio, lendo as tags embutidas.
  *
- * Por enquanto so os dados do proprio arquivo: as tags ID3 chegam na Issue #6,
- * que passa a preencher titulo, artista, album e capa de verdade. Ate la o
- * titulo vem do nome do arquivo e o resto fica como "Desconhecido".
+ * Quando o arquivo nao tem tags — caso comum de musica baixada solta — o titulo
+ * vem do nome do arquivo e artista/album ficam como "Desconhecido".
  *
  * Devolve `null` quando o arquivo nao pode ser lido, para o scan seguir.
  */
@@ -115,17 +115,20 @@ export function processAudioFile(file: File): Track | null {
     const dot = fileName.lastIndexOf('.');
     const extension = dot > 0 ? fileName.slice(dot).toLowerCase() : '';
 
+    const id = generateTrackId(file.uri, modifiedDate);
+    const metadata = extractMetadata(file, extension, id, cleanFileName(fileName) || fileName);
+
     return {
-      id: generateTrackId(file.uri, modifiedDate),
+      id,
       url: file.uri,
-      title: cleanFileName(fileName) || fileName,
-      artist: 'Artista Desconhecido',
-      album: 'Álbum Desconhecido',
-      genre: '',
-      year: null,
-      trackNumber: null,
-      duration: 0,
-      artwork: null,
+      title: metadata.title,
+      artist: metadata.artist,
+      album: metadata.album,
+      genre: metadata.genre,
+      year: metadata.year,
+      trackNumber: metadata.trackNumber,
+      duration: metadata.duration,
+      artwork: metadata.artwork,
       fileName,
       fileSize: file.size ?? 0,
       extension,
@@ -133,6 +136,7 @@ export function processAudioFile(file: File): Track | null {
       playCount: 0,
       lastPlayedAt: null,
       isFavorite: false,
+      rawMetadata: metadata.raw,
     };
   } catch (error) {
     console.warn(`[scanner] falha ao processar ${file.uri}:`, error);

@@ -21,7 +21,8 @@ background playback, lock screen e Control Center.
 | [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3) | Navegação: tabs + player modal       | ✅ Concluída |
 | [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4) | Estado global: Zustand + types       | ✅ Concluída |
 | [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5) | Scanner de arquivos iOS              | ✅ Concluída |
-| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6) | Metadados ID3 + artwork              | ⏳ Próxima   |
+| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6) | Metadados ID3 + artwork              | ✅ Concluída |
+| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7) | Persistência da biblioteca           | ⏳ Próxima   |
 
 As telas existem como placeholders "em construção", cada uma marcada com a issue que a implementa.
 A navegação inteira já está montada e pode ser percorrida.
@@ -268,8 +269,34 @@ Os IDs vêm de `generateTrackId(caminho, dataDeModificação)` — dJB2 alargado
 data é o que permite ao scan incremental (issue #7) detectar arquivos alterados; se o ID fosse só o
 caminho, um arquivo substituído manteria os metadados antigos para sempre.
 
-> Título, artista e álbum ainda são fallbacks derivados do nome do arquivo. A leitura das tags ID3 e
-> a extração de capa chegam na issue #6.
+### Metadados
+
+`tag-parsers.ts` lê as tags direto dos bytes do arquivo, sem dependência de runtime:
+
+| Formato         | Fonte das tags                                    | Duração                           |
+| --------------- | ------------------------------------------------- | --------------------------------- |
+| MP3             | ID3v2.2/2.3/2.4, com ID3v1 como reserva           | estimada pelo bitrate do 1º frame |
+| M4A / MP4 / AAC | átomos iTunes (`©nam`, `©ART`, `trkn`, `covr`, …) | exata, do `mvhd`                  |
+| FLAC            | `VORBIS_COMMENT` e bloco `PICTURE`                | exata, do `STREAMINFO`            |
+
+Nada de `music-metadata` (precisa de streams do Node) nem `jsmediatags` (precisa do
+`react-native-fs`) — os dois exigiriam polyfills pesados no Hermes para ler o que são, no fim,
+alguns cabeçalhos bem documentados.
+
+Detalhes que importam:
+
+- **Só o primeiro 1 MB do arquivo é lido.** Tags e capas vivem no começo; carregar um FLAC de 40 MB
+  inteiro para descobrir o título significaria, com 500 faixas, dezenas de gigabytes de leitura.
+  `FileHandle.readBytes()` permite ler só o cabeçalho.
+- **A duração do MP3 é estimativa**, assumindo bitrate constante — arquivos VBR saem errados. Serve
+  para a lista não mostrar 0:00; a duração exata vem do motor de áudio na issue #8. M4A e FLAC dão o
+  valor exato de graça, direto do cabeçalho.
+- **Nenhum parser lança.** Bytes inesperados devolvem tags vazias e a faixa cai nos fallbacks
+  (título do nome do arquivo, "Artista Desconhecido").
+
+As capas embutidas vão para `Caches/artworks/{trackId}.{jpg|png}` — em `Caches/` e não em
+`Documents/` porque são reconstruíveis a partir do original, então o iOS pode apagá-las quando o
+armazenamento apertar sem o usuário perder nada.
 
 ---
 

@@ -11,3 +11,11 @@ export {
   SUPPORTED_EXTENSIONS,
 } from '@/services/file/file-scanner';
 export type { ScanProgressCallback, ScanResult } from '@/services/file/file-scanner';
+
+export {
+  clearArtworkCache,
+  extractMetadata,
+  readTags,
+  saveArtwork,
+} from '@/services/file/metadata-extractor';
+export type { TrackMetadata } from '@/services/file/metadata-extractor';
