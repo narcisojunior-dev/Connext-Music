@@ -134,6 +134,18 @@ export default function SettingsScreen() {
         />
       </SettingsSection>
 
+      <SettingsSection title="Modo carro">
+        {/* Linha de acao, e nao interruptor: o modo carro e uma tela em que se
+            entra, nao um estado que fica ligado. Um interruptor aqui prometeria
+            uma persistencia que nao existe. */}
+        <SettingsRow
+          title="Abrir modo carro"
+          description="Controles grandes, alto contraste e tela sempre acesa"
+          icon="car-sport-outline"
+          onPress={() => router.push('/car-mode')}
+        />
+      </SettingsSection>
+
       <SettingsSection title="Sleep Timer">
         <SettingsRow
           title={sleepTimer ? 'Timer ativo' : 'Programar timer'}

@@ -90,6 +90,12 @@ export default function RootLayout() {
                 da lista depois de resolver o id. */}
             <Stack.Screen name="smart/[id]" options={{ title: 'Playlist' }} />
             <Stack.Screen name="stats" options={{ title: 'Estatísticas' }} />
+            {/* Sem cabecalho e em tela cheia: no carro, cada elemento que nao e
+                controle e ruido. */}
+            <Stack.Screen
+              name="car-mode"
+              options={{ presentation: 'fullScreenModal', headerShown: false }}
+            />
             <Stack.Screen name="design-system" options={{ title: 'Design System' }} />
           </Stack>
         </NavigationThemeProvider>

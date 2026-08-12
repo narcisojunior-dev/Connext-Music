@@ -137,7 +137,11 @@ export default function PlayerScreen() {
               isFavorite={isFavorite}
               onToggle={() => currentTrack && toggleFavorite(currentTrack.id)}
             />
-            <IconButton name="ellipsis-horizontal" accessibilityLabel="Opções da faixa" />
+            <IconButton
+              name="car-sport"
+              accessibilityLabel="Modo carro"
+              onPress={() => router.push('/car-mode')}
+            />
           </View>
         </View>
 

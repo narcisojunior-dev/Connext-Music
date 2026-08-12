@@ -3,7 +3,7 @@
     "name": "Connext-Music",
     "slug": "Connext-Music",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "connextmusic",
     "userInterfaceStyle": "dark",
@@ -12,7 +12,9 @@
       "bundleIdentifier": "com.narcisojunior.connextmusic",
       "supportsTablet": false,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "UIFileSharingEnabled": true,
         "LSSupportsOpeningDocumentsInPlace": true,
         "NSDocumentsFolderUsageDescription": "O Connext Music precisa acessar a pasta Documentos para encontrar e reproduzir os arquivos de música que você adicionou ao app."
@@ -43,7 +45,13 @@
           "imageWidth": 76
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "PORTRAIT_UP"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
