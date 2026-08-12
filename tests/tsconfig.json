@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // Os globais do Node ficam confinados aqui de propósito: no código do app,
+    // `setTimeout` é o do React Native e tem tipo de retorno diferente do de
+    // Node. Misturar os dois faria o typecheck do app mentir.
+    "types": ["node"]
+  },
+  "include": ["**/*.ts", "../src/**/*.ts"],
+  "exclude": []
+}

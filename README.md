@@ -216,12 +216,12 @@ a tela vai fazer e a issue que a implementa.
 A tab principal do app. Exibe a coleção de músicas do usuário em **4 modos de visualização**,
 alternáveis por uma barra de pills horizontal:
 
-| Aba        | Componente       | Comportamento                                                        |
-| ---------- | ---------------- | -------------------------------------------------------------------- |
-| **Todas**  | `TrackList`      | Lista flat alfabética — `FlatList` com `getItemLayout` (60fps)       |
+| Aba          | Componente      | Comportamento                                                       |
+| ------------ | --------------- | ------------------------------------------------------------------- |
+| **Todas**    | `TrackList`     | Lista flat alfabética — `FlatList` com `getItemLayout` (60fps)      |
 | **Artistas** | `ArtistSection` | `SectionList` agrupada, headers sticky com contagem e duração total |
-| **Álbuns** | `AlbumGrid`      | Grid 2 colunas com artwork quadrado                                  |
-| **Gêneros**| `GenreList`      | Lista com ícone colorido, contagem e chevron                         |
+| **Álbuns**   | `AlbumGrid`     | Grid 2 colunas com artwork quadrado                                 |
+| **Gêneros**  | `GenreList`     | Lista com ícone colorido, contagem e chevron                        |
 
 - **Pull-to-refresh** em qualquer aba inicia o scan, com barra de progresso animada (spring via
   Reanimated) mostrando arquivo atual e progresso.
@@ -236,15 +236,15 @@ alternáveis por uma barra de pills horizontal:
 
 Componentes em `src/components/library/`:
 
-| Componente     | Responsabilidade                                     |
-| -------------- | ---------------------------------------------------- |
-| `TrackItem`    | Linha com artwork, título, artista, duração           |
-| `TrackList`    | `FlatList` otimizada com empty state e header slot    |
-| `ScanProgress` | Barra animada do scan (lê direto do store)            |
-| `LibraryTabs`  | Pills horizontais com micro-animação de scale         |
-| `ArtistSection`| `SectionList` agrupada por artista                    |
-| `AlbumGrid`    | Grid 2 colunas com cards responsivos                  |
-| `GenreList`    | Lista de gêneros com contagem e ícone colorido        |
+| Componente      | Responsabilidade                                   |
+| --------------- | -------------------------------------------------- |
+| `TrackItem`     | Linha com artwork, título, artista, duração        |
+| `TrackList`     | `FlatList` otimizada com empty state e header slot |
+| `ScanProgress`  | Barra animada do scan (lê direto do store)         |
+| `LibraryTabs`   | Pills horizontais com micro-animação de scale      |
+| `ArtistSection` | `SectionList` agrupada por artista                 |
+| `AlbumGrid`     | Grid 2 colunas com cards responsivos               |
+| `GenreList`     | Lista de gêneros com contagem e ícone colorido     |
 
 ---
 

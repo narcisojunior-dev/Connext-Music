@@ -35,6 +35,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@types/node": "^26.2.0",
     "@types/react": "~19.2.2",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~57.0.1",
@@ -53,8 +54,9 @@
     "lint:fix": "expo lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
-    "prebuild": "expo prebuild --clean"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tests",
+    "prebuild": "expo prebuild --clean",
+    "test": "node --import ./tests/loader.mjs --test \"tests/**/*.test.ts\""
   },
   "private": true
 }
