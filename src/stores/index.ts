@@ -13,11 +13,7 @@ export type { PlayerActions, PlayerState, PlayerStore, RepeatMode } from '@/stor
 export { usePlaylistStore } from '@/stores/playlist-store';
 export type { PlaylistActions, PlaylistState, PlaylistStore } from '@/stores/playlist-store';
 
-export {
-  CROSSFADE_MAX_SECONDS,
-  CROSSFADE_MIN_SECONDS,
-  useSettingsStore,
-} from '@/stores/settings-store';
+export { FADE_MAX_SECONDS, FADE_MIN_SECONDS, useSettingsStore } from '@/stores/settings-store';
 export type {
   SettingsActions,
   SettingsState,

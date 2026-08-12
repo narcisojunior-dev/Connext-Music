@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -9,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NowPlayingArtwork, trackColor } from '@/components/player/NowPlayingArtwork';
 import { PlayerControls } from '@/components/player/PlayerControls';
 import { ProgressSlider } from '@/components/player/ProgressSlider';
+import { sleepTimerLabel } from '@/components/settings/SleepTimerModal';
 import { FavoriteButton } from '@/components/track/FavoriteButton';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
@@ -26,6 +28,7 @@ import {
   toggleShuffle,
 } from '@/services/player/queue-manager';
 import { useLibraryStore } from '@/stores/library-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { usePlayerStore } from '@/stores/player-store';
 
 /** Maior lado que a capa pode ocupar, respeitando telas estreitas. */
@@ -60,6 +63,7 @@ export default function PlayerScreen() {
   const queueLength = usePlayerStore((s) => s.queue.length);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
   const toggleFavorite = useLibraryStore((s) => s.toggleFavorite);
+  const sleepTimer = useSettingsStore((s) => s.sleepTimer);
   // O favorito vem da biblioteca, nao da faixa da fila: a fila e uma copia do
   // momento em que a reproducao comecou e nao reflete favoritar depois disso.
   const isFavorite = useLibraryStore(
@@ -113,9 +117,21 @@ export default function PlayerScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <View style={styles.topBar}>
           <IconButton name="chevron-down" accessibilityLabel="Minimizar player" onPress={dismiss} />
-          <Text variant="overline" color="textMuted">
-            {currentIndex + 1} DE {queueLength}
-          </Text>
+          {/* O timer substitui a contagem da fila em vez de somar mais um
+              elemento: e a informacao mais urgente enquanto esta ativo, e a
+              barra superior nao tem espaco para as duas. */}
+          {sleepTimer ? (
+            <View style={styles.timerBadge}>
+              <Ionicons name="moon" size={12} color={theme.colors.primary} />
+              <Text variant="overline" color="primary">
+                {sleepTimerLabel(sleepTimer.option).toUpperCase()}
+              </Text>
+            </View>
+          ) : (
+            <Text variant="overline" color="textMuted">
+              {currentIndex + 1} DE {queueLength}
+            </Text>
+          )}
           <View style={styles.topRight}>
             <FavoriteButton
               isFavorite={isFavorite}
@@ -180,6 +196,11 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  timerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   topRight: {
     flexDirection: 'row',

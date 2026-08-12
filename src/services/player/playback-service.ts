@@ -8,6 +8,8 @@ import TrackPlayer, {
 
 import { JUMP_SECONDS } from '@/services/player/constants';
 import { createPlayTracker } from '@/services/player/play-tracking';
+import { createVolumeController } from '@/services/player/volume-controller';
+import { useSettingsStore } from '@/stores/settings-store';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
 
@@ -96,6 +98,7 @@ export async function playbackService(): Promise<void> {
   // Um por processo: o servico de playback e registrado uma vez e vive
   // enquanto o app vive.
   const playTracker = createPlayTracker();
+  const volume = createVolumeController();
 
   TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
   TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
@@ -137,6 +140,21 @@ export async function playbackService(): Promise<void> {
     if (track && playTracker.onProgress({ trackId: track.id, position, duration })) {
       useLibraryStore.getState().countPlay(track.id);
     }
+
+    void volume.update(track, position, duration);
+
+    // Sleep timer por relogio. E aqui, e nao num `setTimeout`, porque um
+    // timer de JS nao e confiavel com o app em segundo plano — que e
+    // exatamente onde o sleep timer precisa funcionar. O evento de progresso
+    // chega do lado nativo e continua chegando com a tela apagada.
+    const timer = useSettingsStore.getState().sleepTimer;
+    if (timer?.expiresAt !== null && timer !== null && Date.now() >= timer.expiresAt) {
+      useSettingsStore.getState().cancelSleepTimer();
+      void volume.fadeOut().then(async () => {
+        await TrackPlayer.pause();
+        volume.reset();
+      });
+    }
   });
 
   // Troca de faixa — por fim natural da anterior ou por comando remoto.
@@ -148,6 +166,17 @@ export async function playbackService(): Promise<void> {
 
     const track = usePlayerStore.getState().queue[index];
     if (track) useLibraryStore.getState().registerPlayStart(track.id);
+
+    // A faixa nova comeca em volume cheio, desfazendo o fade da anterior.
+    volume.reset();
+    if (track) void volume.update(track, 0, track.duration);
+
+    // Sleep timer "fim da faixa atual": a troca de faixa e o gatilho.
+    const timer = useSettingsStore.getState().sleepTimer;
+    if (timer?.option === 'endOfTrack') {
+      useSettingsStore.getState().cancelSleepTimer();
+      void TrackPlayer.pause();
+    }
   });
 
   TrackPlayer.addEventListener(Event.PlaybackError, ({ code, message }) => {

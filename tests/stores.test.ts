@@ -115,11 +115,11 @@ describe('stores', () => {
     assert.equal(ids.size, 50);
   });
 
-  test('crossfade e limitado a 0-5s', () => {
-    st().setCrossfadeSeconds(99);
-    assert.equal(st().crossfadeSeconds, 5);
-    st().setCrossfadeSeconds(-3);
-    assert.equal(st().crossfadeSeconds, 0);
+  test('fade e limitado a 0-5s', () => {
+    st().setFadeSeconds(99);
+    assert.equal(st().fadeSeconds, 5);
+    st().setFadeSeconds(-3);
+    assert.equal(st().fadeSeconds, 0);
   });
 
   test('sleep timer calcula expiresAt, e null para endOfTrack', () => {

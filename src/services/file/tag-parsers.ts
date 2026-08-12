@@ -349,6 +349,12 @@ export function parseId3v2(bytes: Uint8Array): ParsedTags | null {
 
     if (frameId === names.picture) {
       tags.picture = parseId3Picture(frame, majorVersion);
+    } else if (frameId === 'TXXX' || frameId === 'TXX') {
+      // TXXX carrega um par: descricao, NUL, valor. Caindo no ramo generico de
+      // texto abaixo ele seria truncado no NUL, e o valor se perderia — e e no
+      // valor que vive o ReplayGain.
+      const pair = parseUserTextFrame(frame);
+      if (pair) text[pair.description] = pair.value;
     } else if (frameId.startsWith('T')) {
       const value = clean(decodeByEncoding(frame[0], frame.subarray(1)));
       if (value) text[frameId] = value;
@@ -367,6 +373,42 @@ export function parseId3v2(bytes: Uint8Array): ParsedTags | null {
   tags.raw = text;
 
   return tags;
+}
+
+/**
+ * TXXX / TXX — texto definido pelo usuario.
+ *
+ * O formato e `encoding | descricao | NUL | valor`, com o NUL em uma ou duas
+ * bytes conforme o encoding. A descricao vira a chave, em maiusculas, para o
+ * chamador procurar por nome (`REPLAYGAIN_TRACK_GAIN`) sem saber a ordem em que
+ * os frames apareceram.
+ */
+function parseUserTextFrame(frame: Uint8Array): { description: string; value: string } | null {
+  if (frame.length < 2) return null;
+
+  const encoding = frame[0];
+  const body = frame.subarray(1);
+  // UTF-16 (0x01 e 0x02) termina a descricao com dois bytes zero alinhados.
+  const wide = encoding === 1 || encoding === 2;
+
+  let split = -1;
+  if (wide) {
+    for (let i = 0; i + 1 < body.length; i += 2) {
+      if (body[i] === 0 && body[i + 1] === 0) {
+        split = i;
+        break;
+      }
+    }
+  } else {
+    split = body.indexOf(0);
+  }
+  if (split < 0) return null;
+
+  const description = clean(decodeByEncoding(encoding, body.subarray(0, split)));
+  const value = clean(decodeByEncoding(encoding, body.subarray(split + (wide ? 2 : 1))));
+  if (!description || !value) return null;
+
+  return { description: description.toUpperCase(), value };
 }
 
 /** APIC (v2.3+) e PIC (v2.2). */

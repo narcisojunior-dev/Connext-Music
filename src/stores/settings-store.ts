@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { loadSettings, saveSettings } from '@/services/storage/settings-storage';
+
 /** Opcoes do sleep timer, em minutos. `endOfTrack` para ao terminar a faixa atual. */
 export type SleepTimerOption = 5 | 15 | 30 | 45 | 60 | 'endOfTrack';
 
@@ -10,24 +12,29 @@ export interface SleepTimer {
 }
 
 export interface SettingsState {
-  /** Crossfade entre faixas. `crossfadeSeconds` so vale quando ligado. */
-  crossfadeEnabled: boolean;
-  /** 0 a 5 segundos (Issue #18). */
-  crossfadeSeconds: number;
-  /** Normalizacao de volume entre faixas. */
+  /**
+   * Fade no fim da faixa. `fadeSeconds` so vale quando ligado.
+   *
+   * A issue pedia "crossfade", mas o Track Player 4.1.2 mantem uma unica
+   * instancia de player e nao tem API para sobrepor duas faixas — o que da para
+   * entregar e o fade. O nome aqui segue o que o codigo faz, e nao o que a
+   * issue pediu, porque a diferenca e audivel.
+   */
+  fadeEnabled: boolean;
+  /** 0 a 5 segundos. */
+  fadeSeconds: number;
+  /** Normalizacao de volume via ReplayGain gravado no arquivo. */
   normalizationEnabled: boolean;
-  /** Pular silencio no inicio e fim das faixas. */
-  skipSilenceEnabled: boolean;
   /** Timer ativo, ou null quando nenhum foi programado. */
   sleepTimer: SleepTimer | null;
 }
 
 export interface SettingsActions {
-  setCrossfadeEnabled: (enabled: boolean) => void;
+  hydrate: () => Promise<void>;
+  setFadeEnabled: (enabled: boolean) => void;
   /** Fixa o valor entre 0 e 5s — a UI e um slider, mas a regra vive aqui. */
-  setCrossfadeSeconds: (seconds: number) => void;
+  setFadeSeconds: (seconds: number) => void;
   setNormalizationEnabled: (enabled: boolean) => void;
-  setSkipSilenceEnabled: (enabled: boolean) => void;
   startSleepTimer: (option: SleepTimerOption) => void;
   cancelSleepTimer: () => void;
   resetToDefaults: () => void;
@@ -35,36 +42,52 @@ export interface SettingsActions {
 
 export type SettingsStore = SettingsState & SettingsActions;
 
-export const CROSSFADE_MIN_SECONDS = 0;
-export const CROSSFADE_MAX_SECONDS = 5;
+export const FADE_MIN_SECONDS = 0;
+export const FADE_MAX_SECONDS = 5;
 
 const defaults: SettingsState = {
-  crossfadeEnabled: false,
-  crossfadeSeconds: 2,
+  fadeEnabled: false,
+  fadeSeconds: 2,
   normalizationEnabled: false,
-  skipSilenceEnabled: false,
   sleepTimer: null,
 };
+
+/** Campos gravados. O `sleepTimer` fica de fora: ver `settings-storage`. */
+export type PersistedSettings = Omit<SettingsState, 'sleepTimer'>;
 
 /**
  * Preferencias do usuario (Issue #18).
  *
- * Os defaults sao conservadores de proposito: crossfade e normalizacao alteram
- * o audio, e quem quiser esse comportamento vai liga-lo. A persistencia entra
- * na Issue #7 — por enquanto as preferencias voltam ao padrao a cada abertura.
+ * Os defaults sao conservadores de proposito: fade e normalizacao alteram o
+ * audio, e quem quiser esse comportamento vai liga-lo.
  */
+let hydration: Promise<void> | null = null;
+
 export const useSettingsStore = create<SettingsStore>()((set) => ({
   ...defaults,
 
-  setCrossfadeEnabled: (crossfadeEnabled) => set({ crossfadeEnabled }),
+  // Mesmo padrao de deduplicacao dos outros stores: duas telas podem pedir a
+  // hidratacao ao mesmo tempo, e a leitura mais lenta nao pode sobrescrever o
+  // que o usuario ja mudou.
+  hydrate: () => {
+    hydration ??= loadSettings()
+      .then((stored) => {
+        if (stored) set(stored);
+      })
+      .finally(() => {
+        hydration = null;
+      });
+    return hydration;
+  },
 
-  setCrossfadeSeconds: (seconds) =>
+  setFadeEnabled: (fadeEnabled) => set({ fadeEnabled }),
+
+  setFadeSeconds: (seconds) =>
     set({
-      crossfadeSeconds: Math.min(CROSSFADE_MAX_SECONDS, Math.max(CROSSFADE_MIN_SECONDS, seconds)),
+      fadeSeconds: Math.min(FADE_MAX_SECONDS, Math.max(FADE_MIN_SECONDS, seconds)),
     }),
 
   setNormalizationEnabled: (normalizationEnabled) => set({ normalizationEnabled }),
-  setSkipSilenceEnabled: (skipSilenceEnabled) => set({ skipSilenceEnabled }),
 
   startSleepTimer: (option) =>
     set({
@@ -77,3 +100,25 @@ export const useSettingsStore = create<SettingsStore>()((set) => ({
   cancelSleepTimer: () => set({ sleepTimer: null }),
   resetToDefaults: () => set(defaults),
 }));
+
+/**
+ * Grava as preferencias a cada mudanca.
+ *
+ * Sem debounce, ao contrario da biblioteca: sao quatro campos e a mudanca vem
+ * de um toque humano num interruptor, nunca em rajada.
+ */
+useSettingsStore.subscribe((state, previous) => {
+  if (
+    state.fadeEnabled === previous.fadeEnabled &&
+    state.fadeSeconds === previous.fadeSeconds &&
+    state.normalizationEnabled === previous.normalizationEnabled
+  ) {
+    return;
+  }
+
+  void saveSettings({
+    fadeEnabled: state.fadeEnabled,
+    fadeSeconds: state.fadeSeconds,
+    normalizationEnabled: state.normalizationEnabled,
+  });
+});
