@@ -14,7 +14,7 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-**17 de 27 issues concluídas.** Milestones v0.1 a v0.5 completos; v0.6 em andamento.
+**18 de 27 issues concluídas.** Milestones v0.1 a v0.5 completos; v0.6 em andamento.
 
 | Issue                                                               | Escopo                               | Milestone | Status |
 | ------------------------------------------------------------------- | ------------------------------------ | --------- | ------ |
@@ -35,8 +35,11 @@ background playback, lock screen e Control Center.
 | [#15](https://github.com/narcisojunior-dev/Connext-Music/issues/15) | Favoritos + ações de long-press      | v0.5      | ✅     |
 | [#16](https://github.com/narcisojunior-dev/Connext-Music/issues/16) | Animações e microinterações          | v0.5      | ✅\*   |
 | [#17](https://github.com/narcisojunior-dev/Connext-Music/issues/17) | Estatísticas de reprodução           | v0.6      | ✅     |
+| [#18](https://github.com/narcisojunior-dev/Connext-Music/issues/18) | Ajustes, sleep timer e manutenção    | v0.6      | ✅\*\* |
 
 \* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.
+
+\*\* A #18 não traz o interruptor de "pular silêncio": detectar silêncio exige decodificar PCM, e o Track Player 4.1.2 não expõe nada para isso. O "crossfade" da issue virou **fade** — há uma única instância de player, então não dá para sobrepor duas faixas. Detalhes no commit da #18.
 
 O app já faz o ciclo inteiro: escaneia a pasta `Documents/`, lê as tags, persiste a biblioteca,
 reproduz com controles de fila e modos, busca, organiza em playlists e favoritos. As telas de
@@ -136,6 +139,7 @@ reproduz e não há como automatizar o toque:
 | #14, #15 | Arrastar para reordenar playlist; menu de long-press; compartilhar e remover faixa                    |
 | #16     | Escala do play/pause, pulso e crossfade da capa, marquee, subida do mini player — e se rodam a 60fps |
 | #16     | Intensidade do háptico por intenção: leve no transporte, média ao favoritar, forte no long-press     |
+| #18     | Fade no fim da faixa, normalização por ReplayGain e o fade-out do sleep timer — tudo isso é ouvido |
 
 > A correção do commit `6e1e244` foi motivada por um destes: opções de sessão de áudio inválidas
 > para a categoria `playback` impediam o Now Playing de aparecer. O simulador aceitava a
