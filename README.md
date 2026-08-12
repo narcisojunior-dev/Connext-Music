@@ -69,6 +69,61 @@ npm run prebuild     # expo prebuild --clean
 
 ---
 
+### Rodando no iPhone (aparelho real)
+
+Vários comportamentos **não existem no simulador** — ver a lista no fim desta seção. Para testá-los:
+
+**Configuração inicial** (uma vez por máquina/aparelho):
+
+1. **Apple ID no Xcode:** Xcode → Settings → Accounts → **+**. Conta gratuita serve.
+2. **Modo de Desenvolvedor no iPhone:** Ajustes → Privacidade e Segurança → Modo de Desenvolvedor →
+   ligar → reiniciar. (iOS 16+)
+3. Conecte o iPhone por cabo e confie no Mac.
+
+**A cada instalação:**
+
+```bash
+npx expo run:ios --device     # lista os aparelhos; escolha o seu
+```
+
+Na primeira vez ele pergunta qual time de desenvolvimento usar para assinar. Depois de instalar, o
+iPhone recusa abrir o app até você confiar no certificado: Ajustes → Geral → **VPN e Gerenciamento
+de Dispositivo** → seu Apple ID → Confiar.
+
+Com o app instalado, suba o bundler:
+
+```bash
+npm start
+```
+
+O iPhone precisa estar **na mesma rede Wi-Fi** que o Mac — o dev client busca o bundle pela rede.
+
+> ⚠️ **O `prebuild` apaga a configuração de assinatura.** As pastas `ios/` e `android/` não são
+> versionadas (CNG), então o time de desenvolvimento precisa estar em `app.json` como
+> `expo.ios.appleTeamId` para sobreviver. Sem isso, cada `prebuild` exige reconfigurar no Xcode.
+
+> Com conta gratuita, o perfil de provisionamento **expira em 7 dias** e o app para de abrir até ser
+> reinstalado. Com o Apple Developer Program, dura um ano.
+
+#### O que só o aparelho verifica
+
+Estes critérios de aceite estão implementados mas **não foram observados** — o simulador não os
+reproduz e não há como automatizar o toque:
+
+| Origem  | O que testar                                                                                          |
+| ------- | ----------------------------------------------------------------------------------------------------- |
+| #8, #11 | Controles na tela de bloqueio e na Central de Controle: título, artista, capa, play/pause, ±10s, seek |
+| #8      | Controles de fones físicos e AirPods (play/pause, próxima)                                            |
+| #11     | Arrastar o slider de progresso; retorno háptico dos botões                                            |
+| #10     | Scroll a 60fps com mais de 100 faixas                                                                 |
+| #12     | Gestos do mini player: toque abre o player, arrasto horizontal pula faixa, arrasto para baixo encerra |
+
+> A correção do commit `6e1e244` foi motivada por um destes: opções de sessão de áudio inválidas
+> para a categoria `playback` impediam o Now Playing de aparecer. O simulador aceitava a
+> configuração errada em silêncio — **o teste em aparelho é o que fecha essa lacuna**.
+
+---
+
 ## Arquitetura
 
 ### Continuous Native Generation (CNG)
