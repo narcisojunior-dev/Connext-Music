@@ -1,56 +1,156 @@
-# Welcome to your Expo app 👋
+# 🎵 Connext Music
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Player de música local para iOS. O app varre os arquivos de áudio que você adiciona à pasta
+`Documents/` do próprio app (via iTunes File Sharing ou o app Arquivos) e os reproduz com suporte a
+background playback, lock screen e Control Center.
 
-## Get started
+**Stack:** Expo SDK 57 (managed + CNG) · React Native 0.86 · TypeScript · expo-router
 
-1. Install dependencies
+> Este README acompanha a evolução do projeto. O escopo completo está no
+> [PRD](./docs/PRD_Music_Player_React_Native.md) e o roteiro de execução no
+> [plano de implementação](./docs/implementation-plan.md).
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## Estado atual
 
-   ```bash
-   npx expo start
-   ```
+| Issue                                                             | Escopo                               | Status       |
+| ----------------------------------------------------------------- | ------------------------------------ | ------------ |
+| [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1) | Setup: dev client + arquitetura base | ✅ Concluída |
+| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2) | Design System                        | ⏳ Próxima   |
 
-In the output, you'll find options to open the app in a
+O app ainda exibe a tela inicial do template Expo. As issues #2 e #3 substituem essa tela pelo
+design system e pela navegação em tabs.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Rodando o projeto
 
-## Get a fresh project
+Este projeto usa um **development build** (`expo-dev-client`), não o Expo Go. Isso é obrigatório
+porque os módulos nativos das próximas issues (Track Player, file system, widgets) não existem no
+Expo Go.
 
-When you're ready, run:
+### Pré-requisitos
+
+- Node.js e npm
+- Xcode + Command Line Tools
+- CocoaPods (`brew install cocoapods`)
+
+### Primeira execução
 
 ```bash
-npm run reset-project
+npm install
+npx expo run:ios     # gera ios/, instala os pods, compila e abre no simulador
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+O `run:ios` faz o prebuild automaticamente na primeira vez. Nas execuções seguintes, basta subir o
+bundler:
 
-### Other setup steps
+```bash
+npm start            # expo start --dev-client
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Com o app já instalado no simulador, abra-o e ele se conecta ao bundler. O botão de engrenagem no
+canto da tela abre o menu de desenvolvimento (ou `cmd+d` no simulador).
 
-## Learn more
+### Regenerando as pastas nativas
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm run prebuild     # expo prebuild --clean
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## Arquitetura
 
-Join our community of developers creating universal apps.
+### Continuous Native Generation (CNG)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+As pastas `ios/` e `android/` **não são versionadas** — elas são geradas pelo `expo prebuild` a
+partir do `app.json`. Isso tem uma consequência prática importante:
+
+> ⚠️ **Nunca edite `ios/*/Info.plist` ou os arquivos do Xcode diretamente.** Qualquer alteração é
+> perdida no próximo `prebuild`. Toda configuração nativa vai em `app.json` (ou em um config plugin).
+
+As chaves nativas exigidas pelo player estão declaradas em `app.json` → `expo.ios.infoPlist`:
+
+| Chave                               | Valor       | Para quê                                                |
+| ----------------------------------- | ----------- | ------------------------------------------------------- |
+| `UIBackgroundModes`                 | `["audio"]` | Continuar tocando com o app minimizado / tela bloqueada |
+| `UIFileSharingEnabled`              | `true`      | Expor a pasta do app no iTunes File Sharing             |
+| `LSSupportsOpeningDocumentsInPlace` | `true`      | Deixar a pasta visível no app Arquivos do iOS           |
+| `NSDocumentsFolderUsageDescription` | texto PT-BR | Justificativa mostrada no prompt de permissão           |
+
+Juntas, essas duas últimas chaves são o que permite ao usuário **arrastar músicas para dentro do
+app** — o fluxo principal de entrada de conteúdo do Connext Music.
+
+### Estrutura de pastas
+
+```
+src/
+├── app/          # rotas (expo-router, file-based routing)
+├── components/   # componentes de UI reutilizáveis
+├── constants/    # constantes do template (migrando para theme/)
+├── hooks/        # hooks compartilhados
+├── theme/        # design tokens: cores, tipografia, spacing
+├── types/        # interfaces do domínio (Track, Playlist, Album, Artist)
+├── stores/       # estado global (Zustand)
+├── services/
+│   ├── player/   # Track Player: playback service e fila
+│   ├── file/     # scanner de arquivos, metadados ID3, importação
+│   └── storage/  # persistência local da biblioteca e preferências
+└── utils/        # funções puras (formatters, geração de IDs)
+```
+
+As pastas de `services/`, `stores/`, `types/` e `utils/` contêm apenas arquivos `index.ts`
+placeholder, cada um indicando a issue que o preenche.
+
+### Path aliases
+
+Definidos em `tsconfig.json`. O Metro os resolve automaticamente (`experiments.tsconfigPaths` é
+padrão no SDK 57) — **reinicie o bundler** após alterar o `tsconfig.json`.
+
+| Alias           | Aponta para        |
+| --------------- | ------------------ |
+| `@/*`           | `src/*`            |
+| `@/assets/*`    | `assets/*`         |
+| `@components/*` | `src/components/*` |
+| `@screens/*`    | `src/app/*`        |
+| `@hooks/*`      | `src/hooks/*`      |
+| `@services/*`   | `src/services/*`   |
+| `@stores/*`     | `src/stores/*`     |
+| `@types/*`      | `src/types/*`      |
+| `@utils/*`      | `src/utils/*`      |
+| `@theme/*`      | `src/theme/*`      |
+
+`src/theme/index.ts` é hoje uma ponte que reexporta os tokens do template em
+`src/constants/theme.ts`. A issue #2 substitui o conteúdo mantendo `@theme` como ponto único de
+entrada, de modo que os imports existentes não precisem mudar.
+
+---
+
+## Qualidade de código
+
+```bash
+npm run lint          # ESLint (eslint-config-expo + prettier)
+npm run lint:fix
+npm run format        # Prettier em todo o projeto
+npm run format:check
+npm run typecheck     # tsc --noEmit
+```
+
+O ESLint roda com o flat config (`eslint.config.js`) e o Prettier integrado como regra, então
+problemas de formatação aparecem como erros de lint. As pastas geradas (`ios/`, `android/`,
+`dist/`, `graphify-out/`) ficam fora dos dois.
+
+---
+
+## Documentação
+
+- [PRD](./docs/PRD_Music_Player_React_Native.md) — requisitos do produto
+- [Guia do Scanner iOS](./docs/Guia_Scanner_iOS_Connext.md) — varredura do sistema de arquivos
+- [Plano de implementação](./docs/implementation-plan.md) — as 27 issues, em ordem de dependência
+- [GRAPH_REPORT.md](./GRAPH_REPORT.md) — grafo de conhecimento do código
+
+## Licença
+
+Veja [LICENSE](./LICENSE).

@@ -11,7 +11,7 @@ expo-env.d.ts
 /docs/
 .agents/
 graphify-out/
-
+skills-lock.json
 AGENTS.md
 # Native
 .kotlin/

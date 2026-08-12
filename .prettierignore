@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+web-build/
+ios/
+android/
+graphify-out/
+package-lock.json
+expo-env.d.ts
+
+# Gerado/gerenciado pelo Xcode e pelo Expo — reformatar so causa churn
+assets/
