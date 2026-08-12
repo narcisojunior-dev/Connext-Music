@@ -432,12 +432,20 @@ armazenamento apertar sem o usuário perder nada.
 ## Qualidade de código
 
 ```bash
+npm test              # 82 asserções sobre a lógica pura (runner nativo do Node)
 npm run lint          # ESLint (eslint-config-expo + prettier)
 npm run lint:fix
 npm run format        # Prettier em todo o projeto
 npm run format:check
 npm run typecheck     # tsc --noEmit
 ```
+
+Os testes cobrem o que é lógica pura — parsers de tags, scanner, stores, persistência,
+agrupamentos e formatadores — no runner nativo do Node, **sem dependência de runtime**: os arquivos
+sob teste são TypeScript puro e o Node apaga os tipos sozinho. `tests/loader.mjs` resolve o alias
+`@/` e troca os módulos nativos por stubs; `tests/helpers/audio-fixtures.ts` monta bytes de MP3,
+M4A e FLAC com tags reais, em vez de versionar binários — assim fica explícito **qual** tag cada
+caso exercita. Componentes React ficam de fora: precisam de RNTL, que chega na issue #26.
 
 O ESLint roda com o flat config (`eslint.config.js`) e o Prettier integrado como regra, então
 problemas de formatação aparecem como erros de lint. As pastas geradas (`ios/`, `android/`,
