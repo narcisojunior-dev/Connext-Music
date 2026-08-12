@@ -116,7 +116,13 @@ export default function PlayerScreen() {
 
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <View style={styles.topBar}>
-          <IconButton name="chevron-down" accessibilityLabel="Minimizar player" onPress={dismiss} />
+          <View style={styles.topSlot}>
+            <IconButton
+              name="chevron-down"
+              accessibilityLabel="Minimizar player"
+              onPress={dismiss}
+            />
+          </View>
           {/* O timer substitui a contagem da fila em vez de somar mais um
               elemento: e a informacao mais urgente enquanto esta ativo, e a
               barra superior nao tem espaco para as duas. */}
@@ -132,17 +138,7 @@ export default function PlayerScreen() {
               {currentIndex + 1} DE {queueLength}
             </Text>
           )}
-          <View style={styles.topRight}>
-            <FavoriteButton
-              isFavorite={isFavorite}
-              onToggle={() => currentTrack && toggleFavorite(currentTrack.id)}
-            />
-            <IconButton
-              name="car-sport"
-              accessibilityLabel="Modo carro"
-              onPress={() => router.push('/car-mode')}
-            />
-          </View>
+          <View style={styles.topSlot} />
         </View>
 
         <View style={styles.artworkArea}>
@@ -182,9 +178,19 @@ export default function PlayerScreen() {
             onCycleRepeat={() => void cycleRepeatMode()}
           />
 
-          {/* Fila, volume e AirPlay chegam nas Issues #12 e #21. */}
           <View style={styles.extras}>
+            <FavoriteButton
+              isFavorite={isFavorite}
+              onToggle={() => currentTrack && toggleFavorite(currentTrack.id)}
+              size={20}
+            />
             <IconButton name="list" accessibilityLabel="Fila de reprodução" size="sm" />
+            <IconButton
+              name="car-sport"
+              accessibilityLabel="Modo carro"
+              size="sm"
+              onPress={() => router.push('/car-mode')}
+            />
             <IconButton name="volume-medium" accessibilityLabel="Volume" size="sm" />
             <IconButton name="radio" accessibilityLabel="AirPlay" size="sm" />
           </View>
@@ -206,10 +212,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  topRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  topSlot: {
+    // Os dois lados ocupam a mesma largura para o texto do meio ficar
+    // centralizado na tela, e nao no espaco que sobra.
+    flex: 1,
   },
   topBar: {
     flexDirection: 'row',
@@ -237,6 +243,7 @@ const styles = StyleSheet.create({
   },
   extras: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-around',
   },
 });
