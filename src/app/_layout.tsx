@@ -1,8 +1,11 @@
-import { DarkTheme, ThemeProvider as NavigationThemeProvider } from 'expo-router';
+// Define as variaveis CSS (--font-display, --font-mono) que `typography.ts`
+// referencia no build web. Sem efeito no iOS, mas precisa vir da raiz do app.
+import '@/global.css';
+
+import { DarkTheme, ThemeProvider as NavigationThemeProvider, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { theme } from '@theme/index';
 
@@ -31,7 +34,30 @@ export default function RootLayout() {
     <ThemeProvider>
       <NavigationThemeProvider value={navigationTheme}>
         <AnimatedSplashOverlay />
-        <AppTabs />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTintColor: theme.colors.textPrimary,
+            headerTitleStyle: theme.typography.title,
+            contentStyle: { backgroundColor: theme.colors.background },
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+          {/*
+            O player cobre a tela inteira e some com a tab bar — e o modo
+            "estou ouvindo isto", nao mais uma aba. `fullScreenModal` da a
+            animacao slide-up que o PRD pede; o header sai porque a tela tem os
+            proprios controles de minimizar/opcoes (Issue #11).
+          */}
+          <Stack.Screen
+            name="player"
+            options={{ presentation: 'fullScreenModal', headerShown: false }}
+          />
+
+          <Stack.Screen name="playlist/[id]" options={{ title: 'Playlist' }} />
+          <Stack.Screen name="design-system" options={{ title: 'Design System' }} />
+        </Stack>
       </NavigationThemeProvider>
     </ThemeProvider>
   );

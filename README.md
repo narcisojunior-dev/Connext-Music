@@ -18,11 +18,11 @@ background playback, lock screen e Control Center.
 | ----------------------------------------------------------------- | ------------------------------------ | ------------ |
 | [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1) | Setup: dev client + arquitetura base | ✅ Concluída |
 | [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2) | Design System: tokens e componentes  | ✅ Concluída |
-| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3) | Navegação: tabs + player modal       | ⏳ Próxima   |
+| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3) | Navegação: tabs + player modal       | ✅ Concluída |
+| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4) | Estado global: Zustand + types       | ⏳ Próxima   |
 
-A tela inicial é hoje uma **demonstração do design system** (`src/app/index.tsx`), usada para
-verificar tokens e componentes na tela. A issue #3 reestrutura `src/app/` em tabs e a substitui
-pela Biblioteca.
+As telas existem como placeholders "em construção", cada uma marcada com a issue que a implementa.
+A navegação inteira já está montada e pode ser percorrida.
 
 ---
 
@@ -91,7 +91,6 @@ app** — o fluxo principal de entrada de conteúdo do Connext Music.
 src/
 ├── app/          # rotas (expo-router, file-based routing)
 ├── components/   # componentes de UI reutilizáveis
-├── constants/    # constantes do template (migrando para theme/)
 ├── hooks/        # hooks compartilhados
 ├── theme/        # design tokens: cores, tipografia, spacing
 ├── types/        # interfaces do domínio (Track, Playlist, Album, Artist)
@@ -172,9 +171,37 @@ cores consistentes conforme o app cresce.
 `ThemeProvider` (em `src/app/_layout.tsx`) envolve o app inteiro, junto do provider de navegação
 do expo-router — os dois apontam para a mesma paleta para não haver flash claro entre telas.
 
-> `src/constants/theme.ts` é resíduo do template Expo e está congelado: `Colors` foi repontado para
-> a paleta dark, e o arquivo sai do projeto junto com as telas de exemplo na issue #3. Não adicione
-> nada lá.
+---
+
+## Navegação
+
+`expo-router` com file-based routing. A árvore de rotas:
+
+```
+src/app/
+├── _layout.tsx           # Stack raiz: ThemeProvider + tema de navegação
+├── (tabs)/
+│   ├── _layout.tsx       # Tab Navigator (blur + cores do design system)
+│   ├── index.tsx         # Biblioteca
+│   ├── search.tsx        # Busca
+│   ├── playlists.tsx     # Playlists
+│   └── settings.tsx      # Ajustes
+├── player.tsx            # Player (fullScreenModal)
+├── playlist/[id].tsx     # Detalhe de playlist
+└── design-system.tsx     # Demonstração dos tokens e componentes
+```
+
+O **player não é uma aba** — é apresentado como `fullScreenModal` pelo Stack raiz, então cobre a
+tab bar e entra com slide-up. Ele também é alcançável por deep link (`connextmusic://player`) e,
+no futuro, pela lock screen; nesses casos ele é a única tela da pilha, então o botão de minimizar
+cai para a Biblioteca em vez de chamar um `router.back()` que não teria para onde voltar.
+
+No iOS a tab bar usa `position: absolute` + `BlurView` para o glassmorphism do PRD. Isso tem uma
+consequência prática: **telas com scroll precisam de padding inferior**, senão o último item fica
+escondido atrás da barra.
+
+As telas ainda não implementadas usam o componente `PlaceholderScreen`, que mostra o título, o que
+a tela vai fazer e a issue que a implementa.
 
 ---
 
