@@ -12,3 +12,11 @@ export {
   sortByTitle,
   type GenreGroup,
 } from '@/utils/library-helpers';
+export {
+  buildSearchIndex,
+  isEmptyResults,
+  normalizeSearch,
+  searchLibrary,
+  splitHighlight,
+} from '@/utils/search';
+export type { IndexedTrack, SearchFilter, SearchResults, SearchSort } from '@/utils/search';

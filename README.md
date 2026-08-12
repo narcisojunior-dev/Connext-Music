@@ -434,6 +434,32 @@ reescaneia, em vez de entregar objetos com campos faltando para a UI.
 
 ---
 
+## Busca
+
+Busca em tempo real por título, artista, álbum e gênero, com resultados agrupados por categoria,
+filtros, ordenação e histórico persistido.
+
+**A busca ignora acentos** — quem digita "coracao" acha "Coração". Em português isso não é
+refinamento: ninguém acentua ao buscar no teclado do iPhone.
+
+Duas decisões de desempenho e uma de produto:
+
+- **O índice é construído uma vez por mudança da biblioteca**, não a cada tecla. Normalizar 1000
+  faixas × 4 campos a cada caractere digitado seria o gargalo da tela. Busca de 120 faixas leva
+  ~7 ms; o critério do PRD é < 100 ms para 1000.
+- **Debounce de 300 ms** entre digitar e buscar.
+- **Artistas e álbuns só aparecem quando o _nome_ deles casa** com o termo — e não todos os artistas
+  das faixas encontradas, o que encheria a seção de ruído.
+
+O destaque do termo compara sobre o texto normalizado mas recorta o **original**, para exibir
+"Coração" mesmo quando a busca foi "coracao". Isso exige que a normalização preserve o comprimento
+do texto, e é por isso que o `trim()` fica fora dela.
+
+O histórico guarda os 10 últimos termos; repetir uma busca promove o termo ao topo em vez de
+duplicar.
+
+---
+
 ## Estado global
 
 Quatro stores [Zustand](https://zustand.docs.pmnd.rs/) em `src/stores/`, sem persistência ainda —
