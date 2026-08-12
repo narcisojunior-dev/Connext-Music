@@ -1,17 +1,17 @@
 import { router } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { Text } from '@/components/ui/text';
+import { useLibraryScanner } from '@/hooks/use-library-scanner';
 import { useTheme } from '@/hooks/use-theme';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
 import type { Track } from '@/types/track';
-import { createMockTracks } from '@/utils/mock-tracks';
 
-/** mm:ss. A versao definitiva vira em `utils/formatters.ts` na Issue #5. */
+/** mm:ss. A versao definitiva vira em `utils/formatters.ts`. */
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -62,26 +62,47 @@ function TrackRow({ track, index }: { track: Track; index: number }) {
   );
 }
 
+/** Progresso do scan. A versao animada chega na Issue #10. */
+function ScanProgressBar() {
+  const theme = useTheme();
+  const progress = useLibraryStore((s) => s.scanProgress);
+  if (!progress) return null;
+
+  const ratio = progress.total > 0 ? progress.current / progress.total : 0;
+
+  return (
+    <Box background="surface" padding="md" radius="card" gap="sm">
+      <Text variant="overline" color="textSecondary" numberOfLines={1}>
+        {progress.current}/{progress.total} · {progress.fileName}
+      </Text>
+      <View style={[styles.track, { backgroundColor: theme.colors.surfaceElevated }]}>
+        <View
+          style={[
+            styles.fill,
+            { width: `${Math.round(ratio * 100)}%`, backgroundColor: theme.colors.primary },
+          ]}
+        />
+      </View>
+    </Box>
+  );
+}
+
 export default function LibraryScreen() {
   const tracks = useLibraryStore((s) => s.tracks);
-  const setLibrary = useLibraryStore((s) => s.setLibrary);
+  const isScanning = useLibraryStore((s) => s.isScanning);
+  const { scan } = useLibraryScanner();
 
-  if (tracks.length === 0) {
+  if (tracks.length === 0 && !isScanning) {
     return (
       <View style={styles.container}>
         <PlaceholderScreen
           title="Biblioteca"
-          description="Suas músicas aparecem aqui. Puxe para baixo para escanear a pasta Documents do app."
+          description="Nenhuma música encontrada. Puxe para baixo para escanear a pasta Documents do app."
           icon="musical-notes-outline"
           issue="Issue #10"
         />
-        {/* Semeia os stores enquanto o scanner nao existe (Issue #5). */}
         <View style={styles.actions}>
-          <Button
-            title="Carregar dados de exemplo"
-            variant="secondary"
-            onPress={() => setLibrary(createMockTracks())}
-          />
+          <Button title="Escanear biblioteca" variant="secondary" onPress={scan} />
         </View>
       </View>
     );
@@ -93,16 +114,15 @@ export default function LibraryScreen() {
       keyExtractor={(t) => t.id}
       renderItem={({ item, index }) => <TrackRow track={item} index={index} />}
       contentContainerStyle={styles.list}
+      refreshControl={
+        <RefreshControl refreshing={isScanning} onRefresh={scan} tintColor="#94A3B8" />
+      }
       ListHeaderComponent={
-        <Box gap="xxs" style={styles.listHeader}>
+        <Box gap="sm" style={styles.listHeader}>
           <Text variant="caption" color="textSecondary">
             {tracks.length} {tracks.length === 1 ? 'música' : 'músicas'}
           </Text>
-        </Box>
-      }
-      ListFooterComponent={
-        <Box paddingVertical="lg">
-          <Button title="Limpar biblioteca" variant="ghost" onPress={() => setLibrary([])} />
+          <ScanProgressBar />
         </Box>
       }
     />
@@ -142,5 +162,14 @@ const styles = StyleSheet.create({
   rowText: {
     flex: 1,
     gap: 2,
+  },
+  track: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  fill: {
+    height: '100%',
+    borderRadius: 2,
   },
 });

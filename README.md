@@ -20,7 +20,8 @@ background playback, lock screen e Control Center.
 | [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2) | Design System: tokens e componentes  | ✅ Concluída |
 | [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3) | Navegação: tabs + player modal       | ✅ Concluída |
 | [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4) | Estado global: Zustand + types       | ✅ Concluída |
-| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5) | Scanner de arquivos iOS              | ⏳ Próxima   |
+| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5) | Scanner de arquivos iOS              | ✅ Concluída |
+| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6) | Metadados ID3 + artwork              | ⏳ Próxima   |
 
 As telas existem como placeholders "em construção", cada uma marcada com a issue que a implementa.
 A navegação inteira já está montada e pode ser percorrida.
@@ -231,9 +232,44 @@ No `usePlayerStore`, `currentTrack` e `currentIndex` são sempre atualizados jun
 é o que impede a fila de apontar para uma faixa e a UI mostrar outra depois de remover ou reordenar
 itens.
 
-Enquanto o scanner (issue #5) não existe, a Biblioteca tem um botão **"Carregar dados de exemplo"**
-que semeia os stores com as faixas de `src/utils/mock-tracks.ts`. Essa fixture sai do projeto quando
-o scanner passar a popular a biblioteca de verdade.
+A Biblioteca é populada pelo scanner (issue #5), via pull-to-refresh ou pelo botão de escanear.
+
+---
+
+## Scanner de arquivos
+
+`src/services/file/file-scanner.ts` varre `Documents/` recursivamente atrás de áudio. Essa é a
+única pasta onde o usuário consegue colocar música — o sandbox do iOS bloqueia o resto —, e é o que
+as chaves de `infoPlist` acima tornam acessível pelo iTunes File Sharing e pelo app Arquivos.
+
+```ts
+const { tracks, failed, elapsedMs } = await scanMusicLibrary((current, total, fileName) =>
+  setScanProgress({ current, total, fileName }),
+);
+```
+
+Aceita `.mp3`, `.m4a`, `.flac`, `.wav`, `.aac` e `.ogg`. Ignora arquivos abaixo de 1 KB (downloads
+truncados e os arquivos-fantasma que o iCloud Drive deixa quando o conteúdo ainda não baixou) e
+pastas de sistema (`Caches`, `__MACOSX`, `.git`, ocultas).
+
+Três decisões que valem conhecer antes de mexer:
+
+- **A varredura é em duas fases** — primeiro coleta os arquivos, depois processa. A implementação de
+  referência do guia usava uma fase só e reportava o total _da pasta atual_, o que fazia a barra de
+  progresso reiniciar a cada subpasta. Com duas fases o total é real e o progresso vai de 0 a 100
+  uma vez só.
+- **`scanMusicLibrary` é assíncrona mesmo a API do `expo-file-system` sendo síncrona.** No SDK 57,
+  `list()` e `.size` bloqueiam a thread de JS; sem ceder o event loop periodicamente, um scan de mil
+  arquivos congelaria a interface e a barra de progresso só apareceria preenchida no último frame.
+- **Erro em um arquivo ou pasta não derruba o scan.** Uma pasta ilegível vira um `console.warn` e a
+  varredura segue; arquivos que falham entram na contagem `failed` do resultado.
+
+Os IDs vêm de `generateTrackId(caminho, dataDeModificação)` — dJB2 alargado para 64 bits. Incluir a
+data é o que permite ao scan incremental (issue #7) detectar arquivos alterados; se o ID fosse só o
+caminho, um arquivo substituído manteria os metadados antigos para sempre.
+
+> Título, artista e álbum ainda são fallbacks derivados do nome do arquivo. A leitura das tags ID3 e
+> a extração de capa chegam na issue #6.
 
 ---
 

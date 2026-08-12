@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import type { Playlist } from '@/types/playlist';
+import { generateUUID } from '@/utils/id-generator';
 
 export interface PlaylistState {
   playlists: Playlist[];
@@ -26,20 +27,6 @@ export interface PlaylistActions {
 
 export type PlaylistStore = PlaylistState & PlaylistActions;
 
-/**
- * IDs de playlist.
- *
- * `crypto.randomUUID` existe no Hermes do RN 0.86; o fallback cobre ambientes
- * onde ele nao esta exposto (alguns runners de teste, web antigo). O formato
- * exato nao importa — so precisa ser unico dentro do aparelho.
- */
-function createId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `pl_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
-}
-
 /** Aplica `patch` a uma playlist e carimba `updatedAt`. */
 function patchPlaylist(
   playlists: Playlist[],
@@ -61,7 +48,7 @@ export const usePlaylistStore = create<PlaylistStore>()((set) => ({
   createPlaylist: (name, description) => {
     const now = Date.now();
     const playlist: Playlist = {
-      id: createId(),
+      id: generateUUID(),
       name,
       description,
       trackIds: [],
