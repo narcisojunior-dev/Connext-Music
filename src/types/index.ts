@@ -1,3 +1,6 @@
-// Interfaces do modelo de dados (Track, Playlist, Album, Artist).
-// Preenchido na Issue #4 — Estado Global: Zustand Stores + Types.
-export {};
+// Interfaces do modelo de dados do app.
+export type { Album } from '@/types/album';
+export type { Artist } from '@/types/artist';
+export type { Playlist, SmartPlaylistKind } from '@/types/playlist';
+export type { SupportedExtension, Track } from '@/types/track';
+export { SUPPORTED_EXTENSIONS } from '@/types/track';

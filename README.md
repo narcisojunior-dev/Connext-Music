@@ -19,7 +19,8 @@ background playback, lock screen e Control Center.
 | [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1) | Setup: dev client + arquitetura base | ✅ Concluída |
 | [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2) | Design System: tokens e componentes  | ✅ Concluída |
 | [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3) | Navegação: tabs + player modal       | ✅ Concluída |
-| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4) | Estado global: Zustand + types       | ⏳ Próxima   |
+| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4) | Estado global: Zustand + types       | ✅ Concluída |
+| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5) | Scanner de arquivos iOS              | ⏳ Próxima   |
 
 As telas existem como placeholders "em construção", cada uma marcada com a issue que a implementa.
 A navegação inteira já está montada e pode ser percorrida.
@@ -202,6 +203,37 @@ escondido atrás da barra.
 
 As telas ainda não implementadas usam o componente `PlaceholderScreen`, que mostra o título, o que
 a tela vai fazer e a issue que a implementa.
+
+---
+
+## Estado global
+
+Quatro stores [Zustand](https://zustand.docs.pmnd.rs/) em `src/stores/`, sem persistência ainda —
+ela chega na issue #7.
+
+| Store              | Responsabilidade                                                               |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `usePlayerStore`   | Faixa atual, fila, índice, play/pause, repeat, shuffle, progresso              |
+| `useLibraryStore`  | Faixas da biblioteca, estado e progresso do scan, favoritos, contagem de plays |
+| `usePlaylistStore` | CRUD de playlists e reordenação de faixas                                      |
+| `useSettingsStore` | Crossfade, normalização, pular silêncio, sleep timer                           |
+
+Duas decisões de modelagem que valem conhecer antes de mexer:
+
+- **Playlists guardam só `trackIds`**, nunca objetos `Track`. A faixa vive na biblioteca; duplicá-la
+  na playlist abriria espaço para os dois lados divergirem quando `playCount` ou `isFavorite`
+  mudassem.
+- **`Album` e `Artist` são derivados, nunca armazenados.** São o resultado de agrupar as faixas.
+  Guardar uma cópia exigiria mantê-la em sincronia a cada scan, e a fonte de verdade continua sendo
+  os arquivos em disco.
+
+No `usePlayerStore`, `currentTrack` e `currentIndex` são sempre atualizados juntos por um helper —
+é o que impede a fila de apontar para uma faixa e a UI mostrar outra depois de remover ou reordenar
+itens.
+
+Enquanto o scanner (issue #5) não existe, a Biblioteca tem um botão **"Carregar dados de exemplo"**
+que semeia os stores com as faixas de `src/utils/mock-tracks.ts`. Essa fixture sai do projeto quando
+o scanner passar a popular a biblioteca de verdade.
 
 ---
 
