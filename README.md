@@ -14,21 +14,35 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-| Issue                                                               | Escopo                               | Status       |
-| ------------------------------------------------------------------- | ------------------------------------ | ------------ |
-| [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1)   | Setup: dev client + arquitetura base | ✅ Concluída |
-| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2)   | Design System: tokens e componentes  | ✅ Concluída |
-| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3)   | Navegação: tabs + player modal       | ✅ Concluída |
-| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4)   | Estado global: Zustand + types       | ✅ Concluída |
-| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5)   | Scanner de arquivos iOS              | ✅ Concluída |
-| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6)   | Metadados ID3 + artwork              | ✅ Concluída |
-| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7)   | Persistência + scan incremental      | ✅ Concluída |
-| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8)   | Player de áudio + background         | ✅ Concluída |
-| [#9](https://github.com/narcisojunior-dev/Connext-Music/issues/9)   | Fila, shuffle e repeat               | ✅ Concluída |
-| [#10](https://github.com/narcisojunior-dev/Connext-Music/issues/10) | Tela de Biblioteca completa          | ✅ Concluída |
+**15 de 27 issues concluídas.** Milestones v0.1 a v0.4 completos; v0.5 em andamento.
 
-As telas de Busca, Playlists e Ajustes existem como placeholders "em construção", cada uma marcada
-com a issue que a implementa. A Biblioteca já é funcional e exibe músicas escaneadas.
+| Issue                                                               | Escopo                               | Milestone | Status |
+| ------------------------------------------------------------------- | ------------------------------------ | --------- | ------ |
+| [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1)   | Setup: dev client + arquitetura base | v0.1      | ✅     |
+| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2)   | Design System: tokens e componentes  | v0.1      | ✅     |
+| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3)   | Navegação: tabs + player modal       | v0.1      | ✅     |
+| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4)   | Estado global: Zustand + types       | v0.1      | ✅     |
+| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5)   | Scanner de arquivos iOS              | v0.2      | ✅     |
+| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6)   | Metadados ID3 + artwork em cache     | v0.2      | ✅     |
+| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7)   | Persistência + scan incremental      | v0.2      | ✅     |
+| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8)   | Player de áudio + background         | v0.3      | ✅     |
+| [#9](https://github.com/narcisojunior-dev/Connext-Music/issues/9)   | Fila, shuffle e repeat               | v0.3      | ✅     |
+| [#10](https://github.com/narcisojunior-dev/Connext-Music/issues/10) | Tela de Biblioteca completa          | v0.3      | ✅     |
+| [#11](https://github.com/narcisojunior-dev/Connext-Music/issues/11) | Tela do Player + saltos de 10s       | v0.4      | ✅     |
+| [#12](https://github.com/narcisojunior-dev/Connext-Music/issues/12) | Mini player                          | v0.4      | ✅     |
+| [#13](https://github.com/narcisojunior-dev/Connext-Music/issues/13) | Busca global                         | v0.5      | ✅     |
+| [#14](https://github.com/narcisojunior-dev/Connext-Music/issues/14) | Playlists: CRUD e reordenação        | v0.5      | ✅     |
+| [#15](https://github.com/narcisojunior-dev/Connext-Music/issues/15) | Favoritos + ações de long-press      | v0.5      | ✅     |
+| [#16](https://github.com/narcisojunior-dev/Connext-Music/issues/16) | Animações e microinterações          | v0.5      | ⏳     |
+| [#17](https://github.com/narcisojunior-dev/Connext-Music/issues/17) | Estatísticas de reprodução           | v0.6      | ⏳     |
+
+O app já faz o ciclo inteiro: escaneia a pasta `Documents/`, lê as tags, persiste a biblioteca,
+reproduz com controles de fila e modos, busca, organiza em playlists e favoritos. As telas de
+**Ajustes** (issue #18) e o **detalhe de playlist acessível pelas tabs** são o que resta do fluxo
+principal.
+
+> ⚠️ **Cinco critérios de aceite seguem sem verificação** por dependerem de toque real ou aparelho
+> físico. A lista está em [O que só o aparelho verifica](#o-que-só-o-aparelho-verifica).
 
 ---
 
