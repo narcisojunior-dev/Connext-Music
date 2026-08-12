@@ -13,3 +13,5 @@ export {
   MAX_HISTORY,
   removeSearchTerm,
 } from '@/services/storage/search-history';
+
+export { clearPlaylists, loadPlaylists, savePlaylists } from '@/services/storage/playlist-storage';

@@ -434,6 +434,23 @@ reescaneia, em vez de entregar objetos com campos faltando para a UI.
 
 ---
 
+## Playlists
+
+CRUD completo com reordenação por arrastar, persistido no AsyncStorage junto da biblioteca.
+
+O detalhe importante é o mesmo da issue #7: **playlists guardam só `trackIds`**. A tela resolve os
+ids contra um índice da biblioteca e **ignora os que não existem mais** — o arquivo pode ter saído
+do disco desde que foi adicionado, e a playlist não deve quebrar por isso.
+
+A persistência usa uma assinatura única no store em vez de salvar dentro de cada uma das oito ações
+que mexem na lista; assim não há como esquecer de uma. A hidratação repete o guarda contra corrida
+da biblioteca: uma playlist criada enquanto o disco é lido tem precedência sobre o cache.
+
+O mosaico da capa usa as 4 primeiras faixas — com menos de 4, mostra um bloco só, porque uma grade
+pela metade parece defeito, não estilo.
+
+---
+
 ## Busca
 
 Busca em tempo real por título, artista, álbum e gênero, com resultados agrupados por categoria,

@@ -1,13 +1,18 @@
 import { create } from 'zustand';
 
+import { loadPlaylists, savePlaylists } from '@/services/storage/playlist-storage';
 import type { Playlist } from '@/types/playlist';
 import { generateUUID } from '@/utils/id-generator';
 
 export interface PlaylistState {
   playlists: Playlist[];
+  /** `false` ate as playlists salvas serem lidas do disco. */
+  isHydrated: boolean;
 }
 
 export interface PlaylistActions {
+  /** Carrega as playlists salvas. Chamado uma vez, na abertura do app. */
+  hydrate: () => Promise<void>;
   /** Cria e retorna a playlist, para a UI poder navegar direto para ela. */
   createPlaylist: (name: string, description?: string) => Playlist;
   renamePlaylist: (id: string, name: string) => void;
@@ -50,8 +55,32 @@ function patchPlaylist(
  * As playlists guardam apenas IDs de faixa — ver a nota em `types/playlist.ts`.
  * A persistencia entra na Issue #7.
  */
-export const usePlaylistStore = create<PlaylistStore>()((set) => ({
+/** Ver a nota sobre esta deduplicacao em `library-store.ts`. */
+let hydration: Promise<void> | null = null;
+
+export const usePlaylistStore = create<PlaylistStore>()((set, get) => ({
   playlists: [],
+  isHydrated: false,
+
+  hydrate: () => {
+    if (get().isHydrated) return Promise.resolve();
+
+    hydration ??= loadPlaylists()
+      .then((playlists) => {
+        // Playlists criadas enquanto o disco era lido tem precedencia sobre o
+        // cache — sobrescreve-las faria a playlist recem-criada sumir.
+        if (get().playlists.length > 0) {
+          set({ isHydrated: true });
+          return;
+        }
+        set({ playlists, isHydrated: true });
+      })
+      .finally(() => {
+        hydration = null;
+      });
+
+    return hydration;
+  },
 
   createPlaylist: (name, description) => {
     const now = Date.now();
@@ -135,3 +164,16 @@ export const usePlaylistStore = create<PlaylistStore>()((set) => ({
   setPlaylists: (playlists) => set({ playlists }),
   clear: () => set({ playlists: [] }),
 }));
+
+/**
+ * Persiste as playlists a cada mudanca.
+ *
+ * Uma assinatura unica evita ter de lembrar de salvar em cada uma das oito
+ * acoes que mexem na lista — e de esquecer numa delas. Nao salva durante a
+ * hidratacao, que so devolveria ao disco o que acabou de vir dele.
+ */
+usePlaylistStore.subscribe((state, previous) => {
+  if (!state.isHydrated) return;
+  if (state.playlists === previous.playlists) return;
+  void savePlaylists(state.playlists);
+});
