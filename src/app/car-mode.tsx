@@ -165,17 +165,6 @@ export default function CarModeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.topBar}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Sair do modo carro"
-          onPress={exit}
-          style={[styles.exit, { borderColor: '#FFFFFF' }]}
-        >
-          <Ionicons name="close" size={22} color="#FFFFFF" />
-          <Text variant="caption" style={styles.brightText}>
-            Sair
-          </Text>
-        </Pressable>
         <Text variant="caption" style={styles.dimText}>
           {currentIndex + 1} / {queue.length}
         </Text>
@@ -234,6 +223,24 @@ export default function CarModeScreen() {
           }}
         />
       ) : null}
+
+      {/* Barra fixa na base: sair e a acao que mais precisa ser encontrada sem
+          olhar, e no topo ela ficava fora do alcance do polegar — justamente a
+          um braco de distancia, com o aparelho no suporte. */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Sair do modo carro"
+        onPress={exit}
+        style={({ pressed }) => [
+          styles.exitBar,
+          { borderColor: '#FFFFFF', backgroundColor: pressed ? '#1C1C1E' : 'transparent' },
+        ]}
+      >
+        <Ionicons name="close" size={26} color="#FFFFFF" />
+        <Text variant="title" style={styles.brightText}>
+          Sair do modo carro
+        </Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -257,20 +264,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   topBar: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  exit: {
+  exitBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    gap: 10,
+    // Alto e largo o bastante para ser acertado sem mira, como os controles.
+    minHeight: 72,
+    marginHorizontal: 16,
+    marginTop: 12,
     borderWidth: 2,
-    borderRadius: 24,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
+    borderRadius: 36,
   },
   exitWide: {
     borderWidth: 2,
