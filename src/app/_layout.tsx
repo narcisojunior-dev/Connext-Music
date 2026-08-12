@@ -5,6 +5,7 @@ import '@/global.css';
 import { DarkTheme, ThemeProvider as NavigationThemeProvider, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ThemeProvider } from '@/components/theme/theme-provider';
@@ -41,34 +42,38 @@ export default function RootLayout() {
   }, [hydrate]);
 
   return (
-    <ThemeProvider>
-      <NavigationThemeProvider value={navigationTheme}>
-        <AnimatedSplashOverlay />
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.textPrimary,
-            headerTitleStyle: theme.typography.title,
-            contentStyle: { backgroundColor: theme.colors.background },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    // Sem esta raiz, todo `GestureDetector` da arvore e ignorado em silencio —
+    // o slider de progresso simplesmente nao responderia ao arraste.
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <NavigationThemeProvider value={navigationTheme}>
+          <AnimatedSplashOverlay />
+          <Stack
+            screenOptions={{
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.textPrimary,
+              headerTitleStyle: theme.typography.title,
+              contentStyle: { backgroundColor: theme.colors.background },
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-          {/*
+            {/*
             O player cobre a tela inteira e some com a tab bar — e o modo
             "estou ouvindo isto", nao mais uma aba. `fullScreenModal` da a
             animacao slide-up que o PRD pede; o header sai porque a tela tem os
             proprios controles de minimizar/opcoes (Issue #11).
           */}
-          <Stack.Screen
-            name="player"
-            options={{ presentation: 'fullScreenModal', headerShown: false }}
-          />
+            <Stack.Screen
+              name="player"
+              options={{ presentation: 'fullScreenModal', headerShown: false }}
+            />
 
-          <Stack.Screen name="playlist/[id]" options={{ title: 'Playlist' }} />
-          <Stack.Screen name="design-system" options={{ title: 'Design System' }} />
-        </Stack>
-      </NavigationThemeProvider>
-    </ThemeProvider>
+            <Stack.Screen name="playlist/[id]" options={{ title: 'Playlist' }} />
+            <Stack.Screen name="design-system" options={{ title: 'Design System' }} />
+          </Stack>
+        </NavigationThemeProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

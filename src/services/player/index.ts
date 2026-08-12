@@ -1,4 +1,5 @@
 // Integracao com o Track Player: servico de playback e fila.
+export { JUMP_SECONDS } from '@/services/player/constants';
 export { playbackService, setupPlayer } from '@/services/player/playback-service';
 export {
   addToQueue,
@@ -13,6 +14,8 @@ export {
   resume,
   seekTo,
   setQueue,
+  skipBackward,
+  skipForward,
   skipToNext,
   skipToPrevious,
   stop,

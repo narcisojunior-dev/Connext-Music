@@ -7,6 +7,7 @@ import TrackPlayer, {
   IOSCategoryOptions,
 } from 'react-native-track-player';
 
+import { JUMP_SECONDS } from '@/services/player/constants';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
 
@@ -22,6 +23,8 @@ const CAPABILITIES = [
   Capability.SkipToNext,
   Capability.SkipToPrevious,
   Capability.SeekTo,
+  Capability.JumpForward,
+  Capability.JumpBackward,
   Capability.Stop,
 ];
 
@@ -54,6 +57,10 @@ export async function setupPlayer(): Promise<void> {
       // O que aparece na notificacao compacta do Android; no iOS os controles
       // da lock screen saem de `capabilities`.
       compactCapabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext],
+      // Sem estes intervalos o iOS mostra os botoes de salto com o valor
+      // padrao (15s), que nao bate com o que o app faz na propria tela.
+      forwardJumpInterval: JUMP_SECONDS,
+      backwardJumpInterval: JUMP_SECONDS,
       progressUpdateEventInterval: 1,
     });
   })().catch((error) => {
@@ -83,6 +90,15 @@ export async function playbackService(): Promise<void> {
   TrackPlayer.addEventListener(Event.RemoteNext, () => TrackPlayer.skipToNext());
   TrackPlayer.addEventListener(Event.RemotePrevious, () => TrackPlayer.skipToPrevious());
   TrackPlayer.addEventListener(Event.RemoteSeek, ({ position }) => TrackPlayer.seekTo(position));
+
+  // Saltos vindos da tela de bloqueio e do Control Center. O `interval` chega
+  // do proprio iOS, entao respeitamos o que ele pediu em vez de assumir 10s.
+  TrackPlayer.addEventListener(Event.RemoteJumpForward, ({ interval }) =>
+    TrackPlayer.seekBy(interval ?? JUMP_SECONDS),
+  );
+  TrackPlayer.addEventListener(Event.RemoteJumpBackward, ({ interval }) =>
+    TrackPlayer.seekBy(-(interval ?? JUMP_SECONDS)),
+  );
 
   // Fone desconectado (ou AirPods removidos): pausa, como fazem os demais
   // players. Retomar sozinho quando o fone volta faria a musica tocar alto no

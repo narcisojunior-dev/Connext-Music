@@ -1,15 +1,22 @@
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useCallback } from 'react';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Box } from '@/components/ui/box';
+import { NowPlayingArtwork, trackColor } from '@/components/player/NowPlayingArtwork';
+import { PlayerControls } from '@/components/player/PlayerControls';
+import { ProgressSlider } from '@/components/player/ProgressSlider';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { Text } from '@/components/ui/text';
+import { useTheme } from '@/hooks/use-theme';
 import {
   cycleRepeatMode,
   seekTo,
+  skipBackward,
+  skipForward,
   skipToNext,
   skipToPrevious,
   togglePlay,
@@ -17,13 +24,8 @@ import {
 } from '@/services/player/queue-manager';
 import { usePlayerStore } from '@/stores/player-store';
 
-/** mm:ss para os marcadores da barra de progresso. */
-function formatTime(seconds: number): string {
-  const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
-  const m = Math.floor(safe / 60);
-  const s = Math.floor(safe % 60);
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
+/** Maior lado que a capa pode ocupar, respeitando telas estreitas. */
+const MAX_ARTWORK = 320;
 
 /**
  * Fecha o player.
@@ -41,128 +43,118 @@ function dismiss() {
   router.replace('/');
 }
 
-/**
- * Player fullscreen, apresentado como `fullScreenModal` pelo Stack raiz.
- *
- * O layout definitivo (artwork, slider, controles) chega na Issue #11. Por ora
- * a tela ja le a faixa atual e os modos do `usePlayerStore` — e o que mostra o
- * estado global sendo compartilhado entre telas.
- */
 export default function PlayerScreen() {
-  const [barWidth, setBarWidth] = useState(0);
+  const theme = useTheme();
+  const { width } = useWindowDimensions();
+
   const currentTrack = usePlayerStore((s) => s.currentTrack);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
-  const queueLength = usePlayerStore((s) => s.queue.length);
-  const currentIndex = usePlayerStore((s) => s.currentIndex);
-  const repeatMode = usePlayerStore((s) => s.repeatMode);
-  const shuffleMode = usePlayerStore((s) => s.shuffleMode);
-
   const position = usePlayerStore((s) => s.position);
   const duration = usePlayerStore((s) => s.duration);
+  const repeatMode = usePlayerStore((s) => s.repeatMode);
+  const shuffleMode = usePlayerStore((s) => s.shuffleMode);
+  const queueLength = usePlayerStore((s) => s.queue.length);
+  const currentIndex = usePlayerStore((s) => s.currentIndex);
 
-  return (
-    <View style={styles.container}>
-      <SafeAreaView edges={['top']}>
-        <View style={styles.topBar}>
-          <IconButton name="chevron-down" accessibilityLabel="Minimizar player" onPress={dismiss} />
-          <IconButton name="ellipsis-horizontal" accessibilityLabel="Opções da faixa" />
-        </View>
-      </SafeAreaView>
+  const handleSeek = useCallback((seconds: number) => void seekTo(seconds), []);
 
-      {currentTrack ? (
-        <View style={styles.body}>
-          <Box gap="xs" style={styles.info}>
-            <Text variant="overline" color="textMuted">
-              TOCANDO AGORA · {currentIndex + 1} DE {queueLength}
-            </Text>
-            <Text variant="display" numberOfLines={2} style={styles.center}>
-              {currentTrack.title}
-            </Text>
-            <Text variant="body" color="textSecondary" style={styles.center}>
-              {currentTrack.artist} · {currentTrack.album}
-            </Text>
-          </Box>
-
-          <Box background="surface" padding="lg" radius="card" style={styles.controls} elevated>
-            <IconButton
-              name="shuffle"
-              accessibilityLabel="Modo aleatório"
-              size="sm"
-              active={shuffleMode}
-              onPress={() => void toggleShuffle()}
-            />
-            <IconButton
-              name="play-skip-back"
-              accessibilityLabel="Faixa anterior"
-              onPress={() => void skipToPrevious()}
-            />
-            <IconButton
-              name={isPlaying ? 'pause' : 'play'}
-              accessibilityLabel={isPlaying ? 'Pausar' : 'Reproduzir'}
-              size="lg"
-              background="primary"
-              onPress={() => void togglePlay()}
-            />
-            <IconButton
-              name="play-skip-forward"
-              accessibilityLabel="Próxima faixa"
-              onPress={() => void skipToNext()}
-            />
-            <IconButton
-              name={repeatMode === 'track' ? 'repeat-outline' : 'repeat'}
-              accessibilityLabel="Repetir"
-              size="sm"
-              active={repeatMode !== 'off'}
-              onPress={() => void cycleRepeatMode()}
-            />
-          </Box>
-
-          <Box gap="xs">
-            <View style={styles.progressRow}>
-              <Text variant="overline" color="textMuted">
-                {formatTime(position)}
-              </Text>
-              <Text variant="overline" color="textMuted">
-                {formatTime(duration)}
-              </Text>
-            </View>
-            <Pressable
-              accessibilityRole="adjustable"
-              accessibilityLabel="Posição da faixa"
-              onPress={(e) => {
-                // Barra de progresso provisória: toque posiciona a faixa. O
-                // slider arrastável chega na Issue #11.
-                const { locationX } = e.nativeEvent;
-                if (duration > 0 && barWidth > 0) {
-                  void seekTo((locationX / barWidth) * duration);
-                }
-              }}
-              onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
-              style={styles.progressTrack}
-            >
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: duration > 0 ? `${Math.min(100, (position / duration) * 100)}%` : '0%' },
-                ]}
-              />
-            </Pressable>
-          </Box>
-        </View>
-      ) : (
+  if (!currentTrack) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <SafeAreaView edges={['top']}>
+          <View style={styles.topBar}>
+            <IconButton name="chevron-down" accessibilityLabel="Fechar" onPress={dismiss} />
+          </View>
+        </SafeAreaView>
         <PlaceholderScreen
           title="Player"
           description="Nada tocando. Escolha uma música na Biblioteca."
           icon="play-circle-outline"
           issue="Issue #11"
         />
-      )}
+      </View>
+    );
+  }
+
+  const artworkSize = Math.min(MAX_ARTWORK, width - theme.spacing.xl * 2);
+  // Cor derivada do id da faixa. A cor real da capa chega na Issue #16.
+  const tint = trackColor(currentTrack.id, 55, 22);
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Glassmorphism: um gradiente na cor da faixa, desfocado por cima. É o
+          blur que impede o gradiente de competir com a artwork. */}
+      <LinearGradient
+        colors={[tint, theme.colors.background, theme.colors.background]}
+        locations={[0, 0.6, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      <BlurView tint="dark" intensity={40} style={StyleSheet.absoluteFill} />
+
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <View style={styles.topBar}>
+          <IconButton name="chevron-down" accessibilityLabel="Minimizar player" onPress={dismiss} />
+          <Text variant="overline" color="textMuted">
+            {currentIndex + 1} DE {queueLength}
+          </Text>
+          <IconButton name="ellipsis-horizontal" accessibilityLabel="Opções da faixa" />
+        </View>
+
+        <View style={styles.artworkArea}>
+          <NowPlayingArtwork
+            artwork={currentTrack.artwork}
+            seed={currentTrack.id}
+            size={artworkSize}
+          />
+        </View>
+
+        <View style={styles.bottom}>
+          <View style={styles.info}>
+            <Text variant="heading" numberOfLines={2} style={styles.center}>
+              {currentTrack.title}
+            </Text>
+            <Text variant="body" color="textSecondary" numberOfLines={1} style={styles.center}>
+              {currentTrack.artist}
+            </Text>
+            {currentTrack.album ? (
+              <Text variant="caption" color="textMuted" numberOfLines={1} style={styles.center}>
+                {currentTrack.album}
+              </Text>
+            ) : null}
+          </View>
+
+          <ProgressSlider position={position} duration={duration} onSeek={handleSeek} />
+
+          <PlayerControls
+            isPlaying={isPlaying}
+            shuffleMode={shuffleMode}
+            repeatMode={repeatMode}
+            onTogglePlay={() => void togglePlay()}
+            onPrevious={() => void skipToPrevious()}
+            onNext={() => void skipToNext()}
+            onSkipBackward={() => void skipBackward()}
+            onSkipForward={() => void skipForward()}
+            onToggleShuffle={() => void toggleShuffle()}
+            onCycleRepeat={() => void cycleRepeatMode()}
+          />
+
+          {/* Fila, volume e AirPlay chegam nas Issues #12 e #21. */}
+          <View style={styles.extras}>
+            <IconButton name="list" accessibilityLabel="Fila de reprodução" size="sm" />
+            <IconButton name="volume-medium" accessibilityLabel="Volume" size="sm" />
+            <IconButton name="radio" accessibilityLabel="AirPlay" size="sm" />
+          </View>
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  safeArea: {
     flex: 1,
   },
   topBar: {
@@ -172,36 +164,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
   },
-  body: {
+  artworkArea: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
+  },
+  bottom: {
     paddingHorizontal: 24,
-    gap: 32,
+    paddingBottom: 8,
+    gap: 24,
   },
   info: {
     alignItems: 'center',
+    gap: 4,
   },
   center: {
     textAlign: 'center',
   },
-  controls: {
+  extras: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#1E2438',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: '#3B82F6',
+    justifyContent: 'space-around',
   },
 });

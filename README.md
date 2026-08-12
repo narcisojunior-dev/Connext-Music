@@ -269,6 +269,32 @@ await skipToNext();
 `PlaybackProgressUpdated` escrevem no `usePlayerStore`, então a tela fica correta mesmo quando o
 comando veio da tela de bloqueio e não de um toque no app.
 
+### Tela do player
+
+Capa grande, slider arrastável e controles completos, com o fundo em gradiente na cor da faixa
+coberto por blur — o glassmorphism do PRD.
+
+**Saltos de ±10s** (`skipForward`/`skipBackward`) com os limites tratados: retroceder antes do
+início para em 0s, e avançar além do fim passa para a próxima faixa em vez de buscar uma posição
+que não existe. Os mesmos saltos aparecem na tela de bloqueio e no Control Center via
+`Capability.JumpForward`/`JumpBackward`, com o intervalo declarado em `updateOptions` — sem isso o
+iOS mostraria o padrão de 15s, divergindo do que o app faz.
+
+> Os ícones de ±10s são deliberadamente diferentes dos de faixa anterior/próxima. Confundir os dois
+> é frustrante: um perde a posição da música, o outro não.
+
+O `ProgressSlider` foi escrito com gesture-handler + reanimated em vez de
+`@react-native-community/slider`: o gesto roda na thread de UI, então o indicador acompanha o dedo
+mesmo com o JS ocupado — e evita mais um módulo nativo de terceiros. Enquanto o usuário arrasta, o
+componente ignora o progresso vindo do player; sem isso, cada atualização (1×/s) puxaria o indicador
+de volta.
+
+> ⚠️ `GestureHandlerRootView` envolve o app em `_layout.tsx`. Sem essa raiz, **todo `GestureDetector`
+> da árvore é ignorado em silêncio** — o slider simplesmente não responderia ao arraste.
+
+A cor do gradiente e do placeholder vem do hash do id da faixa, **não** da artwork. Extrair a cor
+dominante da imagem é escopo da issue #16.
+
 ### Fila e modos
 
 ```ts

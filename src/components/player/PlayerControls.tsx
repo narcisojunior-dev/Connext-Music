@@ -1,0 +1,148 @@
+import * as Haptics from 'expo-haptics';
+import { useCallback } from 'react';
+import { StyleSheet, View } from 'react-native';
+
+import { IconButton } from '@/components/ui/icon-button';
+import { Text } from '@/components/ui/text';
+import { JUMP_SECONDS } from '@/services/player/constants';
+import type { RepeatMode } from '@/stores/player-store';
+
+export interface PlayerControlsProps {
+  isPlaying: boolean;
+  shuffleMode: boolean;
+  repeatMode: RepeatMode;
+  onTogglePlay: () => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  onSkipBackward: () => void;
+  onSkipForward: () => void;
+  onToggleShuffle: () => void;
+  onCycleRepeat: () => void;
+}
+
+/** Ícone do repeat: `repeat-outline` distingue "repetir uma faixa" de "repetir a fila". */
+function repeatIcon(mode: RepeatMode) {
+  return mode === 'track' ? ('repeat-outline' as const) : ('repeat' as const);
+}
+
+/**
+ * Linha de controles do player.
+ *
+ * Os saltos de {@link JUMP_SECONDS} usam `play-back`/`play-forward` com o número
+ * sobreposto — de propósito diferentes de `play-skip-back`/`play-skip-forward`,
+ * que são faixa anterior/próxima. Confundir os dois é frustrante: um perde a
+ * posição da música, o outro não.
+ */
+export function PlayerControls({
+  isPlaying,
+  shuffleMode,
+  repeatMode,
+  onTogglePlay,
+  onPrevious,
+  onNext,
+  onSkipBackward,
+  onSkipForward,
+  onToggleShuffle,
+  onCycleRepeat,
+}: PlayerControlsProps) {
+  /** Todo controle vibra ao ser tocado; o play/pause vibra mais forte. */
+  const withHaptics = useCallback(
+    (action: () => void, style = Haptics.ImpactFeedbackStyle.Light) =>
+      () => {
+        Haptics.impactAsync(style).catch(() => {});
+        action();
+      },
+    [],
+  );
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.row}>
+        <IconButton
+          name="shuffle"
+          accessibilityLabel={shuffleMode ? 'Desativar modo aleatório' : 'Ativar modo aleatório'}
+          size="sm"
+          active={shuffleMode}
+          onPress={withHaptics(onToggleShuffle)}
+        />
+
+        <IconButton
+          name="play-skip-back"
+          accessibilityLabel="Faixa anterior"
+          onPress={withHaptics(onPrevious)}
+        />
+
+        <View>
+          <IconButton
+            name="play-back"
+            accessibilityLabel={`Retroceder ${JUMP_SECONDS} segundos`}
+            onPress={withHaptics(onSkipBackward)}
+          />
+          <Text variant="overline" color="textMuted" style={styles.jumpLabel} pointerEvents="none">
+            {JUMP_SECONDS}
+          </Text>
+        </View>
+
+        <IconButton
+          name={isPlaying ? 'pause' : 'play'}
+          accessibilityLabel={isPlaying ? 'Pausar' : 'Reproduzir'}
+          size="lg"
+          background="primary"
+          onPress={withHaptics(onTogglePlay, Haptics.ImpactFeedbackStyle.Medium)}
+        />
+
+        <View>
+          <IconButton
+            name="play-forward"
+            accessibilityLabel={`Avançar ${JUMP_SECONDS} segundos`}
+            onPress={withHaptics(onSkipForward)}
+          />
+          <Text variant="overline" color="textMuted" style={styles.jumpLabel} pointerEvents="none">
+            {JUMP_SECONDS}
+          </Text>
+        </View>
+
+        <IconButton
+          name="play-skip-forward"
+          accessibilityLabel="Próxima faixa"
+          onPress={withHaptics(onNext)}
+        />
+
+        <IconButton
+          name={repeatIcon(repeatMode)}
+          accessibilityLabel={`Repetir: ${repeatMode}`}
+          size="sm"
+          active={repeatMode !== 'off'}
+          onPress={withHaptics(onCycleRepeat)}
+        />
+      </View>
+
+      {/* Estado do repeat por extenso: o ícone sozinho não distingue os modos. */}
+      {repeatMode !== 'off' && (
+        <Text variant="overline" color="primary" style={styles.modeLabel}>
+          {repeatMode === 'track' ? 'REPETINDO A FAIXA' : 'REPETINDO A FILA'}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  jumpLabel: {
+    position: 'absolute',
+    bottom: 2,
+    alignSelf: 'center',
+    fontSize: 9,
+  },
+  modeLabel: {
+    textAlign: 'center',
+  },
+});

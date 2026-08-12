@@ -1,5 +1,6 @@
 import TrackPlayer, { RepeatMode, type Track as RNTPTrack } from 'react-native-track-player';
 
+import { JUMP_SECONDS } from '@/services/player/constants';
 import { setupPlayer } from '@/services/player/playback-service';
 import { usePlayerStore, type RepeatMode as StoreRepeatMode } from '@/stores/player-store';
 import type { Track } from '@/types/track';
@@ -76,6 +77,36 @@ export async function skipToNext(): Promise<void> {
   } catch {
     // Fim da fila sem repeat: o Track Player recusa o pulo. Nao e erro.
   }
+}
+
+/**
+ * Avança {@link JUMP_SECONDS} na faixa atual.
+ *
+ * Passar do fim não é erro: significa "quero a próxima". Sem esse cuidado, um
+ * salto perto do fim mandaria o player para uma posição que não existe e a
+ * faixa terminaria abruptamente.
+ */
+export async function skipForward(): Promise<void> {
+  const { position, duration } = usePlayerStore.getState();
+  const target = position + JUMP_SECONDS;
+
+  if (duration > 0 && target >= duration) {
+    await skipToNext();
+    return;
+  }
+  await seekTo(target);
+}
+
+/**
+ * Retrocede {@link JUMP_SECONDS} na faixa atual.
+ *
+ * Diferente do botão "anterior", nunca troca de faixa: retroceder antes do
+ * início simplesmente volta para 0s. Quem quer a faixa anterior usa o outro
+ * botão.
+ */
+export async function skipBackward(): Promise<void> {
+  const { position } = usePlayerStore.getState();
+  await seekTo(Math.max(0, position - JUMP_SECONDS));
 }
 
 // ------------------------------------------------------------------- a fila
