@@ -15,6 +15,7 @@ import { TrackActionsSheet } from '@/components/track/TrackActionsSheet';
 import { Button } from '@/components/ui/button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { useLibraryScanner } from '@/hooks/use-library-scanner';
+import { useMusicImport } from '@/hooks/use-music-import';
 import { playQueue } from '@/services/player/queue-manager';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
@@ -46,6 +47,7 @@ export default function LibraryScreen() {
   const isHydrated = useLibraryStore((s) => s.isHydrated);
   const currentTrackId = usePlayerStore((s) => s.currentTrack?.id ?? null);
   const { scan } = useLibraryScanner();
+  const { importFiles, isImporting, progress } = useMusicImport();
 
   const [activeTab, setActiveTab] = useState<LibraryTab>('all');
 
@@ -134,6 +136,19 @@ export default function LibraryScreen() {
           issue="Issue #10"
         />
         <View style={styles.actions}>
+          {/* Importar vem primeiro: numa biblioteca vazia, escanear nao tem o
+              que achar — o usuario precisa antes colocar musica no aparelho. */}
+          <Button
+            title={
+              progress && progress.total > 0
+                ? `Importando ${progress.current}/${progress.total}…`
+                : isImporting
+                  ? 'Importando…'
+                  : 'Importar músicas'
+            }
+            onPress={() => void importFiles()}
+            disabled={isImporting}
+          />
           <Button title="Escanear biblioteca" variant="secondary" onPress={() => scan()} />
         </View>
       </View>

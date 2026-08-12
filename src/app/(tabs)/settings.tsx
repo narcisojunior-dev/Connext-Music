@@ -8,6 +8,7 @@ import { SleepTimerModal, sleepTimerLabel } from '@/components/settings/SleepTim
 import { Text } from '@/components/ui/text';
 import { useContentBottomInset } from '@/hooks/use-content-inset';
 import { useLibraryScanner } from '@/hooks/use-library-scanner';
+import { useMusicImport } from '@/hooks/use-music-import';
 import { useTheme } from '@/hooks/use-theme';
 import {
   clearArtworkCache,
@@ -23,6 +24,7 @@ export default function SettingsScreen() {
   const theme = useTheme();
   const bottomInset = useContentBottomInset();
   const { scan, isScanning } = useLibraryScanner();
+  const { importFiles, isImporting, progress } = useMusicImport();
 
   const tracks = useLibraryStore((s) => s.tracks);
   const setLibrary = useLibraryStore((s) => s.setLibrary);
@@ -165,6 +167,17 @@ export default function SettingsScreen() {
           title="Cache de capas"
           detail={formatBytes(summary.artworkBytes)}
           icon="image-outline"
+        />
+        <SettingsRow
+          title={isImporting ? 'Importando…' : 'Importar músicas'}
+          description={
+            progress && progress.total > 0
+              ? `${progress.current} de ${progress.total} · ${progress.fileName}`
+              : 'Escolhe arquivos pelo app Arquivos e copia para o Connext'
+          }
+          icon="download-outline"
+          disabled={isImporting || isScanning}
+          onPress={() => void importFiles()}
         />
         <SettingsRow
           title={isScanning ? 'Escaneando…' : 'Reescanear biblioteca'}

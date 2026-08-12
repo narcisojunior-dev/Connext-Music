@@ -12,6 +12,7 @@ const SRC = new URL('../src/', import.meta.url).pathname;
 
 const STUBS = {
   'expo-file-system': new URL('./stubs/expo-file-system.mjs', import.meta.url).href,
+  'expo-document-picker': new URL('./stubs/expo-document-picker.mjs', import.meta.url).href,
   '@react-native-async-storage/async-storage': new URL('./stubs/async-storage.mjs', import.meta.url)
     .href,
 };
