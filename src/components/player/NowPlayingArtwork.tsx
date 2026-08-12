@@ -1,6 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
+import Animated, {
+  Easing,
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/use-theme';
 
@@ -26,8 +34,14 @@ export interface NowPlayingArtworkProps {
   /** Semente da cor do placeholder — normalmente o id da faixa. */
   seed: string;
   size: number;
+  /** Ativa o pulso sutil enquanto toca. */
+  isPlaying?: boolean;
   style?: ViewStyle;
 }
+
+/** Amplitude do pulso: 1.5% é perceptível sem parecer que a tela está tremendo. */
+const PULSE_SCALE = 1.015;
+const PULSE_MS = 2000;
 
 /**
  * Capa grande do player.
@@ -35,8 +49,27 @@ export interface NowPlayingArtworkProps {
  * Quando a faixa não tem capa embutida, mostra um bloco na cor da faixa com um
  * ícone de nota — em vez de um retângulo cinza igual para todas.
  */
-export function NowPlayingArtwork({ artwork, seed, size, style }: NowPlayingArtworkProps) {
+export function NowPlayingArtwork({
+  artwork,
+  seed,
+  size,
+  isPlaying = false,
+  style,
+}: NowPlayingArtworkProps) {
   const theme = useTheme();
+  const pulse = useSharedValue(1);
+
+  // Reatribuir durante a renderização liga e desliga o laço conforme o estado,
+  // sem um efeito que rodaria um quadro atrasado.
+  pulse.value = isPlaying
+    ? withRepeat(
+        withTiming(PULSE_SCALE, { duration: PULSE_MS, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true,
+      )
+    : withTiming(1, { duration: 300 });
+
+  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
 
   const box: ViewStyle = {
     width: size,
@@ -45,7 +78,13 @@ export function NowPlayingArtwork({ artwork, seed, size, style }: NowPlayingArtw
   };
 
   return (
-    <View style={[styles.shadow, box, theme.shadow.card, style]}>
+    <Animated.View
+      // A `key` remonta o bloco a cada troca de faixa, o que dispara o
+      // `entering` — é o crossfade entre capas.
+      key={seed}
+      entering={FadeIn.duration(theme.duration.spring)}
+      style={[styles.shadow, box, theme.shadow.card, pulseStyle, style]}
+    >
       {artwork ? (
         <Image
           source={{ uri: artwork }}
@@ -65,7 +104,7 @@ export function NowPlayingArtwork({ artwork, seed, size, style }: NowPlayingArtw
           <Ionicons name="musical-notes" size={size * 0.28} color="rgba(255,255,255,0.35)" />
         </View>
       )}
-    </View>
+    </Animated.View>
   );
 }
 

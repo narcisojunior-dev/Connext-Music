@@ -69,7 +69,17 @@ export default function RootLayout() {
           */}
             <Stack.Screen
               name="player"
-              options={{ presentation: 'fullScreenModal', headerShown: false }}
+              options={{
+                presentation: 'fullScreenModal',
+                headerShown: false,
+                // A capa do mini player esta na mesma posicao horizontal da capa
+                // grande, entao subir a tela inteira ja le como a barra
+                // "crescendo" ate virar o player. Um shared element de verdade
+                // exigiria medir e sobrepor a capa fora da arvore de navegacao,
+                // e o ganho nao paga a complexidade.
+                animation: 'slide_from_bottom',
+                gestureDirection: 'vertical',
+              }}
             />
 
             <Stack.Screen name="playlist/[id]" options={{ title: 'Playlist' }} />

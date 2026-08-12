@@ -1,10 +1,16 @@
-import * as Haptics from 'expo-haptics';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+} from 'react-native-reanimated';
 
 import { IconButton } from '@/components/ui/icon-button';
 import { Text } from '@/components/ui/text';
 import { JUMP_SECONDS } from '@/services/player/constants';
+import { hapticControl } from '@/utils/haptics';
 import type { RepeatMode } from '@/stores/player-store';
 
 export interface PlayerControlsProps {
@@ -45,13 +51,33 @@ export function PlayerControls({
   onToggleShuffle,
   onCycleRepeat,
 }: PlayerControlsProps) {
-  /** Todo controle vibra ao ser tocado; o play/pause vibra mais forte. */
+  // Recuo e volta no play/pause. Fica so no botao principal: o `IconButton` ja
+  // encolhe enquanto pressionado, e esta animacao e o eco *depois* do toque —
+  // repetida em cada controle viraria ruido.
+  const playScale = useSharedValue(1);
+
+  // Único controle fora do `withHaptics`, porque também dispara a animação.
+  //
+  // Este handler precisa vir **antes** do `useAnimatedStyle` abaixo: se o hook
+  // que lê `playScale` aparece primeiro, o React Compiler passa a considerar o
+  // valor congelado e `react-hooks/immutability` recusa a escrita aqui.
+  const handleTogglePlay = () => {
+    hapticControl();
+    playScale.value = withSequence(
+      withSpring(0.85, { damping: 14, stiffness: 400 }),
+      withSpring(1, { damping: 12, stiffness: 260 }),
+    );
+    onTogglePlay();
+  };
+
+  const playStyle = useAnimatedStyle(() => ({ transform: [{ scale: playScale.value }] }));
+
+  /** Todo controle de transporte usa o mesmo toque leve — ver `utils/haptics`. */
   const withHaptics = useCallback(
-    (action: () => void, style = Haptics.ImpactFeedbackStyle.Light) =>
-      () => {
-        Haptics.impactAsync(style).catch(() => {});
-        action();
-      },
+    (action: () => void) => () => {
+      hapticControl();
+      action();
+    },
     [],
   );
 
@@ -83,13 +109,15 @@ export function PlayerControls({
           </Text>
         </View>
 
-        <IconButton
-          name={isPlaying ? 'pause' : 'play'}
-          accessibilityLabel={isPlaying ? 'Pausar' : 'Reproduzir'}
-          size="lg"
-          background="primary"
-          onPress={withHaptics(onTogglePlay, Haptics.ImpactFeedbackStyle.Medium)}
-        />
+        <Animated.View style={playStyle}>
+          <IconButton
+            name={isPlaying ? 'pause' : 'play'}
+            accessibilityLabel={isPlaying ? 'Pausar' : 'Reproduzir'}
+            size="lg"
+            background="primary"
+            onPress={handleTogglePlay}
+          />
+        </Animated.View>
 
         <View>
           <IconButton

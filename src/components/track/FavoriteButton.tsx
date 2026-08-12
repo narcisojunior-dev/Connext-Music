@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { Pressable } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -9,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useTheme } from '@/hooks/use-theme';
+import { hapticCommit, hapticControl } from '@/utils/haptics';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
 
@@ -34,9 +34,9 @@ export function FavoriteButton({ isFavorite, onToggle, size = 22 }: FavoriteButt
   const handlePress = () => {
     if (!isFavorite) {
       scale.value = withSequence(withSpring(1.35, { damping: 6 }), withSpring(1));
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      hapticCommit();
     } else {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      hapticControl();
     }
     onToggle();
   };

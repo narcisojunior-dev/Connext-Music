@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { FavoriteButton } from '@/components/track/FavoriteButton';
 import { Text } from '@/components/ui/text';
 import { useLibraryStore } from '@/stores/library-store';
+import { hapticLongPress } from '@/utils/haptics';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDuration } from '@/utils/formatters';
 import type { Track } from '@/types/track';
@@ -55,7 +55,7 @@ export function TrackItem({ track, isActive = false, onPress, onLongPress }: Tra
           ? () => {
               // O toque longo abre um menu; a vibração confirma que ele foi
               // reconhecido antes de a folha aparecer.
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+              hapticLongPress();
               onLongPress();
             }
           : undefined

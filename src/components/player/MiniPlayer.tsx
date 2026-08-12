@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useCallback } from 'react';
@@ -11,8 +10,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { trackColor } from '@/components/player/NowPlayingArtwork';
 import { IconButton } from '@/components/ui/icon-button';
+import { MarqueeText } from '@/components/ui/marquee-text';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
+import { hapticControl } from '@/utils/haptics';
 import { skipToNext, skipToPrevious, stop, togglePlay } from '@/services/player/queue-manager';
 import { usePlayerStore } from '@/stores/player-store';
 
@@ -48,7 +49,7 @@ export function MiniPlayer() {
   const open = useCallback(() => router.push('/player'), []);
 
   const onSwipe = useCallback((direction: 'left' | 'right' | 'down') => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticControl();
     if (direction === 'left') void skipToNext();
     else if (direction === 'right') void skipToPrevious();
     else void stop();
@@ -128,9 +129,7 @@ export function MiniPlayer() {
           )}
 
           <View style={styles.info}>
-            <Text variant="caption" numberOfLines={1} style={styles.title}>
-              {currentTrack.title}
-            </Text>
+            <MarqueeText text={currentTrack.title} variant="caption" style={styles.title} />
             <Text variant="overline" color="textSecondary" numberOfLines={1}>
               {currentTrack.artist}
             </Text>

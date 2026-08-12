@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NowPlayingArtwork, trackColor } from '@/components/player/NowPlayingArtwork';
@@ -11,6 +12,7 @@ import { ProgressSlider } from '@/components/player/ProgressSlider';
 import { FavoriteButton } from '@/components/track/FavoriteButton';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
+import { MarqueeText } from '@/components/ui/marquee-text';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -92,11 +94,20 @@ export default function PlayerScreen() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Glassmorphism: um gradiente na cor da faixa, desfocado por cima. É o
           blur que impede o gradiente de competir com a artwork. */}
-      <LinearGradient
-        colors={[tint, theme.colors.background, theme.colors.background]}
-        locations={[0, 0.6, 1]}
+      {/* O gradiente é remontado a cada faixa com um fade de entrada: animar a
+          cor em si exigiria interpolar entre dois gradientes, e o cruzamento de
+          duas camadas dá o mesmo resultado por muito menos. */}
+      <Animated.View
+        key={currentTrack.id}
+        entering={FadeIn.duration(theme.duration.spring)}
         style={StyleSheet.absoluteFill}
-      />
+      >
+        <LinearGradient
+          colors={[tint, theme.colors.background, theme.colors.background]}
+          locations={[0, 0.6, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
       <BlurView tint="dark" intensity={40} style={StyleSheet.absoluteFill} />
 
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -119,14 +130,13 @@ export default function PlayerScreen() {
             artwork={currentTrack.artwork}
             seed={currentTrack.id}
             size={artworkSize}
+            isPlaying={isPlaying}
           />
         </View>
 
         <View style={styles.bottom}>
           <View style={styles.info}>
-            <Text variant="heading" numberOfLines={2} style={styles.center}>
-              {currentTrack.title}
-            </Text>
+            <MarqueeText text={currentTrack.title} variant="heading" style={styles.center} />
             <Text variant="body" color="textSecondary" numberOfLines={1} style={styles.center}>
               {currentTrack.artist}
             </Text>

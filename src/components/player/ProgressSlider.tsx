@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -6,6 +5,7 @@ import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-nativ
 
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
+import { hapticControl } from '@/utils/haptics';
 import { formatDuration } from '@/utils/formatters';
 
 const TRACK_HEIGHT = 6;
@@ -46,7 +46,7 @@ export function ProgressSlider({ position, duration, onSeek }: ProgressSliderPro
 
   const beginScrub = useCallback(() => {
     setScrubbing(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticControl();
   }, []);
 
   const updateScrub = useCallback(
