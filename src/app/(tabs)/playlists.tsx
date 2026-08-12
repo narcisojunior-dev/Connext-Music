@@ -9,6 +9,7 @@ import { Box } from '@/components/ui/box';
 import { IconButton } from '@/components/ui/icon-button';
 import { Text } from '@/components/ui/text';
 import { useContentBottomInset } from '@/hooks/use-content-inset';
+import { buildSmartPlaylists } from '@/services/library/smart-playlists';
 import { useTheme } from '@/hooks/use-theme';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlaylistStore } from '@/stores/playlist-store';
@@ -32,6 +33,11 @@ export default function PlaylistsScreen() {
   // O(playlists × faixas) numa tela que só quer mostrar quatro capas.
   const byId = useMemo(() => new Map(tracks.map((t) => [t.id, t])), [tracks]);
 
+  // Listas automaticas ficam num cabecalho separado, acima das criadas pelo
+  // usuario: misturar as duas na mesma lista sugeriria que sao editaveis do
+  // mesmo jeito, e elas nao sao — quem define o conteudo delas e a regra.
+  const smart = useMemo(() => buildSmartPlaylists(tracks), [tracks]);
+
   const resolve = useCallback(
     (playlist: Playlist): Track[] =>
       playlist.trackIds.map((id) => byId.get(id)).filter((t): t is Track => !!t),
@@ -54,18 +60,51 @@ export default function PlaylistsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, { paddingBottom: bottomInset }]}
         ListHeaderComponent={
-          <View style={styles.header}>
-            <Text variant="caption" color="textSecondary">
-              {playlists.length} {playlists.length === 1 ? 'playlist' : 'playlists'}
-            </Text>
-            <IconButton
-              name="add"
-              accessibilityLabel="Criar playlist"
-              size="sm"
-              background="primary"
-              onPress={() => setCreating(true)}
-            />
-          </View>
+          <>
+            <View style={styles.smartGrid}>
+              {smart.map((playlist) => (
+                <Pressable
+                  key={playlist.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${playlist.name}, ${playlist.tracks.length} faixas`}
+                  onPress={() => router.push(`/smart/${playlist.id}`)}
+                  style={({ pressed }) => [
+                    styles.smartCard,
+                    {
+                      backgroundColor: theme.colors.surface,
+                      borderRadius: theme.radius.card,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={playlist.icon as keyof typeof Ionicons.glyphMap}
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                  <Text variant="caption" numberOfLines={1}>
+                    {playlist.name}
+                  </Text>
+                  <Text variant="overline" color="textMuted">
+                    {playlist.tracks.length} {playlist.tracks.length === 1 ? 'faixa' : 'faixas'}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.header}>
+              <Text variant="caption" color="textSecondary">
+                {playlists.length} {playlists.length === 1 ? 'playlist' : 'playlists'}
+              </Text>
+              <IconButton
+                name="add"
+                accessibilityLabel="Criar playlist"
+                size="sm"
+                background="primary"
+                onPress={() => setCreating(true)}
+              />
+            </View>
+          </>
         }
         ListEmptyComponent={
           <Box gap="md" style={styles.empty}>
@@ -126,6 +165,18 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: 16,
+  },
+  smartGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingTop: 12,
+  },
+  smartCard: {
+    // Duas por linha, descontando o gap.
+    width: '48.5%',
+    padding: 12,
+    gap: 4,
   },
   header: {
     flexDirection: 'row',

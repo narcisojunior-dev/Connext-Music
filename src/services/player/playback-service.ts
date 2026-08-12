@@ -7,6 +7,7 @@ import TrackPlayer, {
 } from 'react-native-track-player';
 
 import { JUMP_SECONDS } from '@/services/player/constants';
+import { createPlayTracker } from '@/services/player/play-tracking';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
 
@@ -92,6 +93,10 @@ export async function setupPlayer(): Promise<void> {
  * ouvido chegam.
  */
 export async function playbackService(): Promise<void> {
+  // Um por processo: o servico de playback e registrado uma vez e vive
+  // enquanto o app vive.
+  const playTracker = createPlayTracker();
+
   TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
   TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
   TrackPlayer.addEventListener(Event.RemoteStop, () => TrackPlayer.stop());
@@ -127,6 +132,11 @@ export async function playbackService(): Promise<void> {
 
   TrackPlayer.addEventListener(Event.PlaybackProgressUpdated, ({ position, duration }) => {
     usePlayerStore.getState().setProgress(position, duration);
+
+    const track = usePlayerStore.getState().currentTrack;
+    if (track && playTracker.onProgress({ trackId: track.id, position, duration })) {
+      useLibraryStore.getState().countPlay(track.id);
+    }
   });
 
   // Troca de faixa — por fim natural da anterior ou por comando remoto.
@@ -134,8 +144,10 @@ export async function playbackService(): Promise<void> {
     if (index === undefined || index === null) return;
     usePlayerStore.getState().setCurrentIndex(index);
 
+    playTracker.onPlaybackStart();
+
     const track = usePlayerStore.getState().queue[index];
-    if (track) useLibraryStore.getState().registerPlay(track.id);
+    if (track) useLibraryStore.getState().registerPlayStart(track.id);
   });
 
   TrackPlayer.addEventListener(Event.PlaybackError, ({ code, message }) => {

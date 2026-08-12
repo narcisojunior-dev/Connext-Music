@@ -83,6 +83,10 @@ export default function RootLayout() {
             />
 
             <Stack.Screen name="playlist/[id]" options={{ title: 'Playlist' }} />
+            {/* O titulo real e definido pela propria tela, que so conhece o nome
+                da lista depois de resolver o id. */}
+            <Stack.Screen name="smart/[id]" options={{ title: 'Playlist' }} />
+            <Stack.Screen name="stats" options={{ title: 'Estatísticas' }} />
             <Stack.Screen name="design-system" options={{ title: 'Design System' }} />
           </Stack>
         </NavigationThemeProvider>

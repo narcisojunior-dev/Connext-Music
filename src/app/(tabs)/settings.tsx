@@ -14,6 +14,7 @@ export default function SettingsScreen() {
         issue="Issue #18"
       />
       <View style={styles.actions}>
+        <Button title="Estatísticas" onPress={() => router.push('/stats')} />
         <Button
           title="Design System"
           variant="ghost"
@@ -29,6 +30,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actions: {
+    gap: 8,
     position: 'absolute',
     left: 24,
     right: 24,

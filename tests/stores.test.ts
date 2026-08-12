@@ -68,17 +68,28 @@ describe('stores', () => {
     assert.equal(lib().tracks.find((t: { id: string }) => t.id === 't1')?.title, 'atualizado');
   });
 
-  test('toggleFavorite e registerPlay atualizam so a faixa alvo', () => {
+  test('toggleFavorite e a contagem atualizam so a faixa alvo', () => {
     lib().clear();
     lib().setLibrary(T);
     lib().toggleFavorite('t2');
-    lib().registerPlay('t2');
+    lib().countPlay('t2');
     const t2 = lib().tracks.find((t: { id: string }) => t.id === 't2');
     const t1 = lib().tracks.find((t: { id: string }) => t.id === 't1');
     assert.equal(t2?.isFavorite, true);
     assert.equal(t2?.playCount, 1);
     assert.equal(t1?.isFavorite, false);
     assert.equal(t1?.playCount, 0);
+  });
+
+  // As duas metades sao separadas justamente para poderem acontecer em momentos
+  // diferentes: comecar a faixa marca a data, so passar de 50% soma.
+  test('registerPlayStart marca a data sem somar reproducao', () => {
+    lib().clear();
+    lib().setLibrary(T);
+    lib().registerPlayStart('t1');
+    const t1 = lib().tracks.find((t: { id: string }) => t.id === 't1');
+    assert.equal(t1?.playCount, 0);
+    assert.ok(t1?.lastPlayedAt !== null, 'lastPlayedAt deveria ter sido cravado');
   });
 
   test('CRUD de playlist', () => {

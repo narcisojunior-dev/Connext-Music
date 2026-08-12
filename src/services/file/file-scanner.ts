@@ -136,6 +136,7 @@ export function processAudioFile(file: File): Track | null {
       playCount: 0,
       lastPlayedAt: null,
       isFavorite: false,
+      addedAt: Date.now(),
       rawMetadata: metadata.raw,
     };
   } catch (error) {
@@ -205,6 +206,9 @@ function carryUserData(track: Track, previous: Track | undefined): Track {
     playCount: previous.playCount,
     lastPlayedAt: previous.lastPlayedAt,
     isFavorite: previous.isFavorite,
+    // Preservado junto do resto: reescanear nao pode fazer a biblioteca
+    // inteira parecer recem-adicionada.
+    addedAt: previous.addedAt,
   };
 }
 

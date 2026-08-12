@@ -35,6 +35,15 @@ export interface Track {
   playCount: number;
   lastPlayedAt: number | null;
   isFavorite: boolean;
+  /**
+   * Quando a faixa entrou na biblioteca.
+   *
+   * Nao e o `modifiedDate` do arquivo: um arquivo copiado do iTunes preserva a
+   * data original, entao musica antiga adicionada hoje apareceria como velha em
+   * "Recentemente Adicionadas". Este campo e cravado no primeiro scan que ve a
+   * faixa e preservado nos scans seguintes.
+   */
+  addedAt: number;
 
   /** Tags ID3 cruas, para debug e usos avancados. */
   rawMetadata?: Record<string, unknown>;
