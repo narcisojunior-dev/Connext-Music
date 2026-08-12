@@ -4,7 +4,6 @@ import TrackPlayer, {
   Event,
   IOSCategory,
   IOSCategoryMode,
-  IOSCategoryOptions,
 } from 'react-native-track-player';
 
 import { JUMP_SECONDS } from '@/services/player/constants';
@@ -41,12 +40,21 @@ export async function setupPlayer(): Promise<void> {
   setupPromise ??= (async () => {
     await TrackPlayer.setupPlayer({
       // `playback` mantem o audio tocando com o app em segundo plano e com a
-      // tela bloqueada; sem isso o iOS silencia o app ao sair para o inicio.
+      // tela bloqueada, e e o que faz o iOS exibir os controles na tela de
+      // bloqueio e na Central de Controle.
       iosCategory: IOSCategory.Playback,
       iosCategoryMode: IOSCategoryMode.Default,
-      // Continua tocando quando o usuario vira o botao de silencioso — e o
-      // comportamento esperado de um player de musica, nao de um app de video.
-      iosCategoryOptions: [IOSCategoryOptions.AllowAirPlay, IOSCategoryOptions.AllowBluetooth],
+      // Sem opcoes de categoria, de proposito.
+      //
+      // `AllowAirPlay` e `AllowBluetooth` (HFP) sao, pelo header do SDK,
+      // "only valid with AVAudioSessionCategoryPlayAndRecord". Passa-las junto
+      // de `playback` faz `setCategory` lancar — e o Track Player chama esse
+      // metodo com `try?`, engolindo o erro. A sessao ficava entao na
+      // categoria padrao, sem audio em segundo plano e sem Now Playing.
+      //
+      // Nada se perde: para categorias de saida como `playback`, o header diz
+      // que A2DP "is always implicitly true and cannot be changed" — fones
+      // Bluetooth e AirPlay ja funcionam por padrao.
     });
 
     await TrackPlayer.updateOptions({
