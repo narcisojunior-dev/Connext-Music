@@ -14,7 +14,7 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-**19 de 27 issues concluídas.** Milestones v0.1 a v0.6 completos.
+**20 de 27 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 em andamento.
 
 | Issue                                                               | Escopo                               | Milestone | Status |
 | ------------------------------------------------------------------- | ------------------------------------ | --------- | ------ |
@@ -37,12 +37,15 @@ background playback, lock screen e Control Center.
 | [#17](https://github.com/narcisojunior-dev/Connext-Music/issues/17) | Estatísticas de reprodução           | v0.6      | ✅     |
 | [#18](https://github.com/narcisojunior-dev/Connext-Music/issues/18) | Ajustes, sleep timer e manutenção    | v0.6      | ✅\*\* |
 | [#19](https://github.com/narcisojunior-dev/Connext-Music/issues/19) | Importação via Document Picker       | v0.6      | ✅     |
+| [#20](https://github.com/narcisojunior-dev/Connext-Music/issues/20) | Modo carro                           | v0.7      | ✅     |
 
 \* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.
 
 \*\* A #18 não traz o interruptor de "pular silêncio": detectar silêncio exige decodificar PCM, e o Track Player 4.1.2 não expõe nada para isso. O "crossfade" da issue virou **fade** — há uma única instância de player, então não dá para sobrepor duas faixas. Detalhes no commit da #18.
 
-> ⚠️ A #19 acrescentou **`expo-document-picker`**, que é um módulo nativo. Um dev client compilado antes dela não tem esse módulo e vai falhar ao abrir a Biblioteca. Rode `npx expo run:ios` uma vez para recompilar.
+> ⚠️ As issues #19 e #20 acrescentaram módulos nativos (**`expo-document-picker`**, **`expo-keep-awake`**,
+> **`expo-screen-orientation`**) e a #20 mudou a orientação suportada no `app.json`. Um dev client compilado
+> antes delas não tem esses módulos. Rode `npx expo run:ios` uma vez para recompilar.
 
 O fluxo principal está completo: o app escaneia a pasta `Documents/` (ou importa pelo seletor do
 iOS), lê as tags, persiste a biblioteca, reproduz com fila, shuffle e repeat, busca, organiza em
@@ -144,6 +147,7 @@ reproduz e não há como automatizar o toque:
 | #16     | Intensidade do háptico por intenção: leve no transporte, média ao favoritar, forte no long-press     |
 | #18     | Fade no fim da faixa, normalização por ReplayGain e o fade-out do sleep timer — tudo isso é ouvido |
 | #19     | O seletor de arquivos do iOS: filtro de tipos, seleção múltipla e cópia vinda de iCloud/Drive     |
+| #20     | Legibilidade do modo carro a 1 m, rotação para paisagem e o auto-lock realmente desativado        |
 
 > A correção do commit `6e1e244` foi motivada por um destes: opções de sessão de áudio inválidas
 > para a categoria `playback` impediam o Now Playing de aparecer. O simulador aceitava a
