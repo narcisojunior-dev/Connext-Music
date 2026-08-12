@@ -23,7 +23,8 @@ background playback, lock screen e Control Center.
 | [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5) | Scanner de arquivos iOS              | ✅ Concluída |
 | [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6) | Metadados ID3 + artwork              | ✅ Concluída |
 | [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7) | Persistência + scan incremental      | ✅ Concluída |
-| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8) | Player de áudio (Track Player)       | ⏳ Próxima   |
+| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8) | Player de áudio + background         | ✅ Concluída |
+| [#9](https://github.com/narcisojunior-dev/Connext-Music/issues/9) | Fila, shuffle e repeat               | ⏳ Próxima   |
 
 As telas existem como placeholders "em construção", cada uma marcada com a issue que a implementa.
 A navegação inteira já está montada e pode ser percorrida.
@@ -206,6 +207,38 @@ escondido atrás da barra.
 
 As telas ainda não implementadas usam o componente `PlaceholderScreen`, que mostra o título, o que
 a tela vai fazer e a issue que a implementa.
+
+---
+
+## Reprodução
+
+`react-native-track-player` 4.1.2, com o serviço de playback registrado em `index.js` — antes de
+qualquer tela montar, porque o Track Player o executa fora da árvore do React, inclusive com o app
+em segundo plano.
+
+```ts
+await playQueue(tracks, index); // toca a partir de uma posição
+await togglePlay();
+await seekTo(30);
+await skipToNext();
+```
+
+- `src/services/player/playback-service.ts` — setup, capabilities e os handlers dos comandos
+  remotos (lock screen, Control Center, fones)
+- `src/services/player/queue-manager.ts` — a API que as telas usam
+
+**O estado real do áudio manda.** A UI reflete o player, nunca o contrário: `PlaybackState` e
+`PlaybackProgressUpdated` escrevem no `usePlayerStore`, então a tela fica correta mesmo quando o
+comando veio da tela de bloqueio e não de um toque no app.
+
+Fone desconectado pausa a reprodução em vez de continuar no alto-falante — retomar sozinho quando o
+fone volta faria a música tocar alto em situações indesejadas.
+
+> ⚠️ **Risco de manutenção conhecido.** O RNTP 4.1.2 é um módulo da arquitetura legada (herda de
+> `RCTEventEmitter`, sem `codegenConfig`) e só funciona no RN 0.86 através da camada de interop. O
+> React Native já anunciou a remoção gradual do código legado, e a v5 do RNTP ainda está em alpha.
+> A alternativa de primeira parte é o `expo-audio`, que no SDK 57 cobre background playback e
+> controles de tela de bloqueio (`setActiveForLockScreen`) — vale reavaliar se a interop quebrar.
 
 ---
 

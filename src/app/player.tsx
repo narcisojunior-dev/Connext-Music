@@ -1,12 +1,22 @@
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Box } from '@/components/ui/box';
 import { IconButton } from '@/components/ui/icon-button';
 import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { Text } from '@/components/ui/text';
+import { seekTo, skipToNext, skipToPrevious, togglePlay } from '@/services/player/queue-manager';
 import { usePlayerStore } from '@/stores/player-store';
+
+/** mm:ss para os marcadores da barra de progresso. */
+function formatTime(seconds: number): string {
+  const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
+  const m = Math.floor(safe / 60);
+  const s = Math.floor(safe % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
 
 /**
  * Fecha o player.
@@ -32,6 +42,7 @@ function dismiss() {
  * estado global sendo compartilhado entre telas.
  */
 export default function PlayerScreen() {
+  const [barWidth, setBarWidth] = useState(0);
   const currentTrack = usePlayerStore((s) => s.currentTrack);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const queueLength = usePlayerStore((s) => s.queue.length);
@@ -39,9 +50,8 @@ export default function PlayerScreen() {
   const repeatMode = usePlayerStore((s) => s.repeatMode);
   const shuffleMode = usePlayerStore((s) => s.shuffleMode);
 
-  const togglePlay = usePlayerStore((s) => s.togglePlay);
-  const next = usePlayerStore((s) => s.next);
-  const previous = usePlayerStore((s) => s.previous);
+  const position = usePlayerStore((s) => s.position);
+  const duration = usePlayerStore((s) => s.duration);
   const cycleRepeatMode = usePlayerStore((s) => s.cycleRepeatMode);
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
 
@@ -79,19 +89,19 @@ export default function PlayerScreen() {
             <IconButton
               name="play-skip-back"
               accessibilityLabel="Faixa anterior"
-              onPress={previous}
+              onPress={() => void skipToPrevious()}
             />
             <IconButton
               name={isPlaying ? 'pause' : 'play'}
               accessibilityLabel={isPlaying ? 'Pausar' : 'Reproduzir'}
               size="lg"
               background="primary"
-              onPress={togglePlay}
+              onPress={() => void togglePlay()}
             />
             <IconButton
               name="play-skip-forward"
               accessibilityLabel="Próxima faixa"
-              onPress={next}
+              onPress={() => void skipToNext()}
             />
             <IconButton
               name={repeatMode === 'track' ? 'repeat-outline' : 'repeat'}
@@ -102,9 +112,37 @@ export default function PlayerScreen() {
             />
           </Box>
 
-          <Text variant="overline" color="textMuted" style={styles.center}>
-            REPEAT: {repeatMode.toUpperCase()} · SHUFFLE: {shuffleMode ? 'ON' : 'OFF'}
-          </Text>
+          <Box gap="xs">
+            <View style={styles.progressRow}>
+              <Text variant="overline" color="textMuted">
+                {formatTime(position)}
+              </Text>
+              <Text variant="overline" color="textMuted">
+                {formatTime(duration)}
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="adjustable"
+              accessibilityLabel="Posição da faixa"
+              onPress={(e) => {
+                // Barra de progresso provisória: toque posiciona a faixa. O
+                // slider arrastável chega na Issue #11.
+                const { locationX } = e.nativeEvent;
+                if (duration > 0 && barWidth > 0) {
+                  void seekTo((locationX / barWidth) * duration);
+                }
+              }}
+              onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
+              style={styles.progressTrack}
+            >
+              <View
+                style={[
+                  styles.progressFill,
+                  { width: duration > 0 ? `${Math.min(100, (position / duration) * 100)}%` : '0%' },
+                ]}
+              />
+            </Pressable>
+          </Box>
         </View>
       ) : (
         <PlaceholderScreen
@@ -145,5 +183,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progressTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#1E2438',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: '#3B82F6',
   },
 });

@@ -7,6 +7,7 @@ import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { Text } from '@/components/ui/text';
 import { useLibraryScanner } from '@/hooks/use-library-scanner';
 import { useTheme } from '@/hooks/use-theme';
+import { playQueue } from '@/services/player/queue-manager';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
 import type { Track } from '@/types/track';
@@ -21,19 +22,18 @@ function formatDuration(seconds: number): string {
 function TrackRow({ track, index }: { track: Track; index: number }) {
   const theme = useTheme();
   const tracks = useLibraryStore((s) => s.tracks);
-  const setQueue = usePlayerStore((s) => s.setQueue);
-  const setIsPlaying = usePlayerStore((s) => s.setIsPlaying);
-  const registerPlay = useLibraryStore((s) => s.registerPlay);
   const isCurrent = usePlayerStore((s) => s.currentTrack?.id === track.id);
 
   return (
     <Pressable
       accessibilityRole="button"
       onPress={() => {
-        setQueue(tracks, index);
-        setIsPlaying(true);
-        registerPlay(track.id);
+        // Abre o player na hora e deixa o áudio carregar em paralelo: esperar o
+        // arquivo abrir antes de navegar deixaria o toque com atraso perceptível.
         router.push('/player');
+        playQueue(tracks, index).catch((error) =>
+          console.warn('[player] não foi possível iniciar a reprodução:', error),
+        );
       }}
       style={({ pressed }) => [
         styles.row,

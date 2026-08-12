@@ -1,3 +1,13 @@
-// Integracao com o Track Player: playbackService, queueManager.
-// Preenchido na Issue #8 — Player de Audio.
-export {};
+// Integracao com o Track Player: servico de playback e fila.
+export { playbackService, setupPlayer } from '@/services/player/playback-service';
+export {
+  pause,
+  playQueue,
+  playTrack,
+  resume,
+  seekTo,
+  skipToNext,
+  skipToPrevious,
+  stop,
+  togglePlay,
+} from '@/services/player/queue-manager';
