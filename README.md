@@ -14,7 +14,7 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-**20 de 28 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 em andamento.
+**21 de 28 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 em andamento.
 
 | Issue                                                               | Escopo                               | Milestone | Status |
 | ------------------------------------------------------------------- | ------------------------------------ | --------- | ------ |
@@ -38,11 +38,15 @@ background playback, lock screen e Control Center.
 | [#18](https://github.com/narcisojunior-dev/Connext-Music/issues/18) | Ajustes, sleep timer e manutenção    | v0.6      | ✅\*\* |
 | [#19](https://github.com/narcisojunior-dev/Connext-Music/issues/19) | Importação via Document Picker       | v0.6      | ✅     |
 | [#20](https://github.com/narcisojunior-dev/Connext-Music/issues/20) | Modo carro                           | v0.7      | ✅     |
+| [#21](https://github.com/narcisojunior-dev/Connext-Music/issues/21) | Equalizador básico                   | v0.7      | 🚫\*\*\* |
+| [#22](https://github.com/narcisojunior-dev/Connext-Music/issues/22) | Compartilhamento de playlists        | v0.7      | ✅     |
 | [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ⏳     |
 
 \* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.
 
 \*\* A #18 não traz o interruptor de "pular silêncio": detectar silêncio exige decodificar PCM, e o Track Player 4.1.2 não expõe nada para isso. O "crossfade" da issue virou **fade** — há uma única instância de player, então não dá para sobrepor duas faixas. Detalhes no commit da #18.
+
+\*\*\* A #21 (equalizador) **não é viável** com a stack atual: o `react-native-track-player` não expõe nenhum método de efeito, e o motor por baixo (`SwiftAudioEx` sobre `AVPlayer`) não tem `AVAudioUnitEQ` nem tap de áudio. Aplicar o efeito exigiria forkar o motor ou substituir o RNTP por um módulo nativo sobre `AVAudioEngine`. A pesquisa completa está no comentário da issue.
 
 > ⚠️ As issues #19 e #20 acrescentaram módulos nativos (**`expo-document-picker`**, **`expo-keep-awake`**,
 > **`expo-screen-orientation`**) e a #20 mudou a orientação suportada no `app.json`. Um dev client compilado
@@ -149,6 +153,7 @@ reproduz e não há como automatizar o toque:
 | #18     | Fade no fim da faixa, normalização por ReplayGain e o fade-out do sleep timer — tudo isso é ouvido |
 | #19     | O seletor de arquivos do iOS: filtro de tipos, seleção múltipla e cópia vinda de iCloud/Drive     |
 | #20     | Legibilidade do modo carro a 1 m, rotação para paisagem e o auto-lock realmente desativado        |
+| #22     | A folha de compartilhamento e o seletor de arquivos do iOS ao exportar/importar playlists         |
 
 > A correção do commit `6e1e244` foi motivada por um destes: opções de sessão de áudio inválidas
 > para a categoria `playback` impediam o Now Playing de aparecer. O simulador aceitava a
