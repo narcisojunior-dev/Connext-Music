@@ -23,27 +23,30 @@ export function useMusicImport() {
   const { scan } = useLibraryScanner();
   const [progress, setProgress] = useState<ImportProgress | null>(null);
 
-  const importFiles = useCallback(async () => {
-    // Um segundo seletor por cima do primeiro trava a interface no iOS.
-    if (progress) return;
+  const importFiles = useCallback(
+    async (subfolder?: string | null) => {
+      // Um segundo seletor por cima do primeiro trava a interface no iOS.
+      if (progress) return;
 
-    setProgress({ current: 0, total: 0, fileName: '' });
-    try {
-      const result = await importMusicFiles(setProgress);
+      setProgress({ current: 0, total: 0, fileName: '' });
+      try {
+        const result = await importMusicFiles(setProgress, subfolder);
 
-      if (result.canceled) return;
+        if (result.canceled) return;
 
-      Alert.alert('Importação', describeImport(result));
+        Alert.alert('Importação', describeImport(result));
 
-      // Nada copiado, nada a reescanear.
-      if (result.imported > 0) await scan();
-    } catch (error) {
-      console.warn('[import] falha inesperada:', error);
-      Alert.alert('Importação', 'Não foi possível importar os arquivos.');
-    } finally {
-      setProgress(null);
-    }
-  }, [progress, scan]);
+        // Nada copiado, nada a reescanear.
+        if (result.imported > 0) await scan();
+      } catch (error) {
+        console.warn('[import] falha inesperada:', error);
+        Alert.alert('Importação', 'Não foi possível importar os arquivos.');
+      } finally {
+        setProgress(null);
+      }
+    },
+    [progress, scan],
+  );
 
   return {
     importFiles,

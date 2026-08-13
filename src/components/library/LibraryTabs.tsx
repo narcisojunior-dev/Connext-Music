@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
 
-export type LibraryTab = 'all' | 'favorites' | 'artists' | 'albums' | 'genres';
+export type LibraryTab = 'all' | 'favorites' | 'artists' | 'albums' | 'genres' | 'folders';
 
 const TABS: { key: LibraryTab; label: string }[] = [
   { key: 'all', label: 'Todas' },
@@ -12,6 +12,7 @@ const TABS: { key: LibraryTab; label: string }[] = [
   { key: 'artists', label: 'Artistas' },
   { key: 'albums', label: 'Álbuns' },
   { key: 'genres', label: 'Gêneros' },
+  { key: 'folders', label: 'Pastas' },
 ];
 
 export interface LibraryTabsProps {

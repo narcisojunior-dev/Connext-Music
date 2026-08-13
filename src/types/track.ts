@@ -28,6 +28,15 @@ export interface Track {
   fileSize: number;
   /** Extensao com ponto: `.mp3`, `.flac`, ... */
   extension: string;
+  /**
+   * Pasta de origem, relativa a `Documents/`. `""` para faixas na raiz.
+   *
+   * O usuario ja organizou a colecao em pastas — `Rock/`, `MPB/1970/` — com um
+   * criterio proprio que nenhuma tag reproduz. Guardar isto e o que permite
+   * mostrar a biblioteca do jeito que ela esta no disco, em vez de so pelo que
+   * as tags dizem.
+   */
+  folderPath: string;
   /** Timestamp da ultima modificacao. Junto do path, forma o `id` e detecta arquivos alterados. */
   modifiedDate: number;
 

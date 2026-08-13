@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { describeImport, isSupportedAudio, uniqueName } from '@/services/file/file-importer';
+import {
+  describeImport,
+  isSupportedAudio,
+  sanitizeFolderName,
+  uniqueName,
+} from '@/services/file/file-importer';
 
 describe('validação de formato na importação', () => {
   it('aceita as extensões que o scanner também encontra', () => {
@@ -82,5 +87,27 @@ describe('resumo da importação', () => {
 
   it('relata falhas', () => {
     assert.match(describeImport({ ...base, failed: ['x.mp3', 'y.mp3'] }), /2 falharam/);
+  });
+});
+
+describe('pasta de destino nomeada', () => {
+  it('mantém um nome comum como está', () => {
+    assert.equal(sanitizeFolderName('Rock dos anos 80'), 'Rock dos anos 80');
+  });
+
+  it('remove o que criaria níveis ou quebraria o caminho', () => {
+    assert.ok(!sanitizeFolderName('Rock/Metal')!.includes('/'));
+    assert.ok(!sanitizeFolderName('Show: ao vivo')!.includes(':'));
+  });
+
+  it('recusa nomes que têm significado no sistema de arquivos', () => {
+    assert.equal(sanitizeFolderName('.'), null);
+    assert.equal(sanitizeFolderName('..'), null);
+    assert.equal(sanitizeFolderName('   '), null);
+    assert.equal(sanitizeFolderName('///'), null);
+  });
+
+  it('limita o tamanho', () => {
+    assert.ok(sanitizeFolderName('a'.repeat(200))!.length <= 60);
   });
 });

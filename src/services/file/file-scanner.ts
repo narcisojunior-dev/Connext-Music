@@ -122,7 +122,33 @@ export function collectAudioFiles(directory: Directory): File[] {
  *
  * Devolve `null` quando o arquivo nao pode ser lido, para o scan seguir.
  */
-export function processAudioFile(file: File): Track | null {
+/**
+ * Pasta do arquivo, relativa a `Documents/`.
+ *
+ * Deriva do proprio `uri` em vez de exigir que o chamador acompanhe a
+ * profundidade da recursao: a varredura desce por varios niveis, e passar o
+ * caminho adiante daria mais chance de erro que recalcula-lo aqui.
+ */
+export function folderPathOf(fileUri: string, documentsUri: string): string {
+  const decode = (value: string) => {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  };
+
+  const file = decode(fileUri);
+  const root = decode(documentsUri).replace(/\/?$/, '/');
+
+  if (!file.startsWith(root)) return '';
+
+  const relative = file.slice(root.length);
+  const lastSlash = relative.lastIndexOf('/');
+  return lastSlash < 0 ? '' : relative.slice(0, lastSlash);
+}
+
+export function processAudioFile(file: File, documentsUri?: string): Track | null {
   try {
     const fileName = file.name;
     const modifiedDate = file.lastModified ?? 0;
@@ -147,6 +173,7 @@ export function processAudioFile(file: File): Track | null {
       fileSize: file.size ?? 0,
       extension,
       modifiedDate,
+      folderPath: documentsUri ? folderPathOf(file.uri, documentsUri) : '',
       playCount: 0,
       lastPlayedAt: null,
       isFavorite: false,
@@ -281,7 +308,7 @@ export async function scanMusicLibrary({
       reused++;
     } else {
       const previous = knownByUrl.get(file.uri);
-      const track = processAudioFile(file);
+      const track = processAudioFile(file, documents.uri);
 
       if (track) {
         tracks.push(carryUserData(track, previous));

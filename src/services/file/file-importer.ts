@@ -14,6 +14,24 @@ import { SUPPORTED_EXTENSIONS } from '@/types/track';
 const IMPORT_DIRECTORY = 'Music';
 
 /**
+ * Deixa o nome de pasta seguro para o sistema de arquivos.
+ *
+ * Barra e dois-pontos criariam niveis que o usuario nao pediu, ou quebrariam o
+ * caminho. Devolve `null` quando nao sobra nada utilizavel — o chamador entao
+ * importa para a pasta padrao em vez de criar uma pasta sem nome.
+ */
+export function sanitizeFolderName(name: string): string | null {
+  const safe = name
+    .replace(/[/\\:*?"<>|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // `.` e `..` tem significado no sistema de arquivos.
+  if (!safe || safe === '.' || safe === '..') return null;
+  return safe.slice(0, 60);
+}
+
+/**
  * Tipos aceitos pelo picker.
  *
  * `public.audio` cobre os formatos que o iOS reconhece como áudio. Os UTIs
@@ -97,9 +115,20 @@ export function uniqueName(taken: Set<string>, fileName: string): string {
   }
 }
 
-/** Cria (se preciso) e devolve a pasta de destino. */
-function importDirectory(): Directory {
-  const directory = new Directory(Paths.document, IMPORT_DIRECTORY);
+/**
+ * Cria (se preciso) e devolve a pasta de destino.
+ *
+ * Com `subfolder`, o destino vira `Documents/Music/<subfolder>/`, e a aba
+ * Pastas (Issue #28) passa a mostrar esse grupo separado. Sem ele tudo cai em
+ * `Music/`, achatando a organizacao que o usuario tinha na origem — o seletor
+ * do iOS nao informa de que pasta cada arquivo veio, entao reconstrui-la e
+ * impossivel; nomear o lote e o mais perto disso que da para chegar.
+ */
+function importDirectory(subfolder?: string | null): Directory {
+  const directory = subfolder
+    ? new Directory(Paths.document, IMPORT_DIRECTORY, subfolder)
+    : new Directory(Paths.document, IMPORT_DIRECTORY);
+
   if (!directory.exists) directory.create({ intermediates: true });
   return directory;
 }
@@ -116,6 +145,7 @@ function importDirectory(): Directory {
  */
 export async function importMusicFiles(
   onProgress?: (progress: ImportProgress) => void,
+  subfolder?: string | null,
 ): Promise<ImportResult> {
   let picked: DocumentPicker.DocumentPickerResult;
   try {
@@ -135,7 +165,7 @@ export async function importMusicFiles(
     return { ...EMPTY, canceled: true };
   }
 
-  const directory = importDirectory();
+  const directory = importDirectory(subfolder ? sanitizeFolderName(subfolder) : null);
   const taken = new Set<string>();
   try {
     for (const entry of directory.list()) {

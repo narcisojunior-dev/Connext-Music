@@ -12,9 +12,10 @@ const LIBRARY_KEY = '@connext/library';
  * cache e reescaneamos, em vez de entregar objetos com campos faltando para a
  * UI. Reescanear e barato; um crash na abertura, nao.
  */
-// 2: `Track.addedAt` (Issue #17). Bibliotecas na v1 sao descartadas e
-// reescaneadas — mais barato que inventar uma data de adicao que nao existe.
-const SCHEMA_VERSION = 2;
+// 2: `Track.addedAt` (Issue #17).
+// 3: `Track.folderPath` (Issue #28). Bibliotecas antigas sao descartadas e
+// reescaneadas — mais barato que inventar dados que nao existem no cache.
+const SCHEMA_VERSION = 3;
 
 interface StoredLibrary {
   version: number;

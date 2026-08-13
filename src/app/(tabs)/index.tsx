@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import {
   AlbumGrid,
   ArtistSection,
+  FolderList,
   GenreList,
   LibraryTabs,
   ScanProgress,
@@ -37,6 +38,7 @@ import {
  * - **Artistas** — `SectionList` agrupada com `ArtistSection`
  * - **Álbuns** — grid 2 colunas com `AlbumGrid`
  * - **Gêneros** — lista com contagem com `GenreList`
+ * - **Pastas** — a biblioteca como está no disco, com `FolderList`
  *
  * Pull-to-refresh inicia o scan em qualquer aba. A barra de progresso animada
  * (`ScanProgress`) aparece no topo de todas as listas.
@@ -203,6 +205,17 @@ export default function LibraryScreen() {
           onRefresh={handleRefresh}
           onAlbumPress={handleAlbumPress}
           header={scanHeader}
+        />
+      )}
+
+      {activeTab === 'folders' && (
+        <FolderList
+          tracks={tracks}
+          currentTrackId={currentTrackId}
+          onTrackPress={(queue: Track[], index: number) =>
+            handleTrackPress(queue[index], index, queue)
+          }
+          onTrackLongPress={setActionsTrack}
         />
       )}
 

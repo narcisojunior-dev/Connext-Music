@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import {
-  loadLibrary,
-  saveLibrary,
-} from '@/services/storage/library-storage';
+import { loadLibrary, saveLibrary } from '@/services/storage/library-storage';
 import { loadPlaylists, savePlaylists } from '@/services/storage/playlist-storage';
 import { clearSettings, loadSettings, saveSettings } from '@/services/storage/settings-storage';
 import { buildSmartPlaylists } from '@/services/library/smart-playlists';
@@ -147,7 +144,10 @@ describe('fluxo: favoritar → aparecer em Favoritas', () => {
       (p) => p.id === 'favorites',
     );
 
-    assert.deepEqual(favoritas?.tracks.map((t) => t.id), ['b']);
+    assert.deepEqual(
+      favoritas?.tracks.map((t) => t.id),
+      ['b'],
+    );
   });
 
   test('desfavoritar tira da lista', () => {

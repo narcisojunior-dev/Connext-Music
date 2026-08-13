@@ -42,6 +42,26 @@ export default function SettingsScreen() {
   // Medir o cache de capas toca o disco, então só quando a biblioteca muda.
   const summary = useMemo(() => summarizeLibrary(tracks), [tracks]);
 
+  /**
+   * Pergunta o nome da pasta antes de importar.
+   *
+   * O seletor do iOS nao informa de que pasta cada arquivo veio, entao a
+   * organizacao de origem se perde de qualquer forma. Nomear o lote e o mais
+   * perto que da para chegar — e a aba Pastas passa a mostra-lo separado.
+   */
+  const handleImport = useCallback(() => {
+    Alert.prompt(
+      'Importar músicas',
+      'Nome da pasta para agrupar o que for importado. Deixe em branco para usar “Music”.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Escolher arquivos', onPress: (name?: string) => void importFiles(name?.trim()) },
+      ],
+      'plain-text',
+      '',
+    );
+  }, [importFiles]);
+
   const handleRescan = useCallback(() => {
     Alert.alert(
       'Reescanear biblioteca',
@@ -189,7 +209,7 @@ export default function SettingsScreen() {
           }
           icon="download-outline"
           disabled={isImporting || isScanning}
-          onPress={() => void importFiles()}
+          onPress={handleImport}
         />
         <SettingsRow
           title={isScanning ? 'Escaneando…' : 'Reescanear biblioteca'}
