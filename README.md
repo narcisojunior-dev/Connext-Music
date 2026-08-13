@@ -14,7 +14,7 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-**26 de 28 issues concluídas.** Milestones v0.1 a v0.6 e v0.9 completos; v0.7 e v0.8 fechados exceto pelas ressalvas.
+**28 de 28 issues concluídas.** Todos os milestones fechados, com as ressalvas anotadas abaixo.
 
 | Issue                                                               | Escopo                               | Milestone | Status       |
 | ------------------------------------------------------------------- | ------------------------------------ | --------- | ------------ |
@@ -44,7 +44,7 @@ background playback, lock screen e Control Center.
 | [#24](https://github.com/narcisojunior-dev/Connext-Music/issues/24) | Atalhos Siri                         | v0.8      | ✅\*\*\*\*\* |
 | [#25](https://github.com/narcisojunior-dev/Connext-Music/issues/25) | Otimização de performance            | v0.9      | ✅           |
 | [#26](https://github.com/narcisojunior-dev/Connext-Music/issues/26) | Testes automatizados                 | v0.9      | ✅           |
-| [#27](https://github.com/narcisojunior-dev/Connext-Music/issues/27) | Preparação para App Store            | v1.0      | ⏳           |
+| [#27](https://github.com/narcisojunior-dev/Connext-Music/issues/27) | Preparação para App Store            | v1.0      | ✅           |
 | [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ✅           |
 
 \* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.

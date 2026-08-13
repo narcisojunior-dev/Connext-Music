@@ -249,6 +249,12 @@ export default function SettingsScreen() {
       <SettingsSection title="Sobre">
         <SettingsRow title="Versão" detail={version} icon="information-circle-outline" />
         <SettingsRow
+          title="Rever tutorial"
+          description="As três telas de primeira abertura"
+          icon="school-outline"
+          onPress={() => router.push('/onboarding')}
+        />
+        <SettingsRow
           title="Reprodução"
           detail="react-native-track-player"
           icon="hardware-chip-outline"

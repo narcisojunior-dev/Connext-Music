@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
@@ -18,6 +18,7 @@ import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
 import { useLibraryScanner } from '@/hooks/use-library-scanner';
 import { useMusicImport } from '@/hooks/use-music-import';
 import { playQueue } from '@/services/player/queue-manager';
+import { hasSeenOnboarding } from '@/services/storage/onboarding-storage';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
 import type { Album } from '@/types/album';
@@ -121,6 +122,17 @@ export default function LibraryScreen() {
   const scanHeader = useMemo(() => <ScanProgress />, []);
 
   // ──────────────────────────────────────────────────── guards
+
+  // Primeira abertura: o tutorial explica como colocar musica no aparelho.
+  // So aparece com a biblioteca vazia — quem ja tem musica nao precisa dele, e
+  // e a espera do `isHydrated` que evita mostra-lo por um quadro a quem tem.
+  useEffect(() => {
+    if (!isHydrated || tracks.length > 0) return;
+
+    void hasSeenOnboarding().then((seen) => {
+      if (!seen) router.replace('/onboarding');
+    });
+  }, [isHydrated, tracks.length]);
 
   // Sem este guarda, a tela de "nenhuma música" pisca a cada abertura antes de
   // a biblioteca salva terminar de carregar.

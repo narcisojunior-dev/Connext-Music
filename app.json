@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Connext-Music",
+    "name": "Connext Music",
     "slug": "Connext-Music",
     "version": "1.0.0",
     "orientation": "default",
@@ -8,7 +8,6 @@
     "scheme": "connextmusic",
     "userInterfaceStyle": "dark",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.narcisojunior.connextmusic",
       "supportsTablet": false,
       "infoPlist": {
@@ -23,7 +22,9 @@
         "com.apple.security.application-groups": [
           "group.com.narcisojunior.connextmusic"
         ]
-      }
+      },
+      "buildNumber": "1",
+      "requireFullScreen": false
     },
     "android": {
       "package": "com.narcisojunior.connextmusic",
@@ -63,6 +64,8 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "description": "Player de música local para iPhone. Sem streaming, sem conta, sem internet.",
+    "primaryColor": "#3B82F6"
   }
 }

@@ -96,6 +96,7 @@ export default function RootLayout() {
                 da lista depois de resolver o id. */}
             <Stack.Screen name="smart/[id]" options={{ title: 'Playlist' }} />
             <Stack.Screen name="stats" options={{ title: 'Estatísticas' }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             {/* Rota de passagem dos botoes do widget: executa e redireciona,
                 entao nao deve piscar um cabecalho. */}
             <Stack.Screen name="widget/[action]" options={{ headerShown: false }} />
