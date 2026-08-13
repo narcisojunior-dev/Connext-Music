@@ -9,6 +9,7 @@ import { Box } from '@/components/ui/box';
 import { IconButton } from '@/components/ui/icon-button';
 import { Text } from '@/components/ui/text';
 import { useContentBottomInset } from '@/hooks/use-content-inset';
+import { usePlaylistTransfer } from '@/hooks/use-playlist-transfer';
 import { buildSmartPlaylists } from '@/services/library/smart-playlists';
 import { useTheme } from '@/hooks/use-theme';
 import { useLibraryStore } from '@/stores/library-store';
@@ -26,6 +27,8 @@ export default function PlaylistsScreen() {
   const playlists = usePlaylistStore((s) => s.playlists);
   const createPlaylist = usePlaylistStore((s) => s.createPlaylist);
   const tracks = useLibraryStore((s) => s.tracks);
+
+  const { importPlaylist } = usePlaylistTransfer();
 
   const [creating, setCreating] = useState(false);
 
@@ -96,13 +99,21 @@ export default function PlaylistsScreen() {
               <Text variant="caption" color="textSecondary">
                 {playlists.length} {playlists.length === 1 ? 'playlist' : 'playlists'}
               </Text>
-              <IconButton
-                name="add"
-                accessibilityLabel="Criar playlist"
-                size="sm"
-                background="primary"
-                onPress={() => setCreating(true)}
-              />
+              <View style={styles.headerActions}>
+                <IconButton
+                  name="download-outline"
+                  accessibilityLabel="Importar playlist de um arquivo"
+                  size="sm"
+                  onPress={() => void importPlaylist()}
+                />
+                <IconButton
+                  name="add"
+                  accessibilityLabel="Criar playlist"
+                  size="sm"
+                  background="primary"
+                  onPress={() => setCreating(true)}
+                />
+              </View>
             </View>
           </>
         }
@@ -165,6 +176,11 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: 16,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   smartGrid: {
     flexDirection: 'row',

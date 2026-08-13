@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
 import { Text } from '@/components/ui/text';
 import { useContentBottomInset } from '@/hooks/use-content-inset';
+import { usePlaylistTransfer } from '@/hooks/use-playlist-transfer';
 import { useTheme } from '@/hooks/use-theme';
 import { playQueue, toggleShuffle } from '@/services/player/queue-manager';
 import { useLibraryStore } from '@/stores/library-store';
@@ -37,6 +38,8 @@ export default function PlaylistDetailScreen() {
 
   const libraryTracks = useLibraryStore((s) => s.tracks);
   const currentTrackId = usePlayerStore((s) => s.currentTrack?.id ?? null);
+
+  const { exportPlaylist } = usePlaylistTransfer();
 
   const [editing, setEditing] = useState(false);
 
@@ -200,6 +203,11 @@ export default function PlaylistDetailScreen() {
 
             <View style={styles.secondaryActions}>
               <Button title="Editar" variant="ghost" onPress={() => setEditing(true)} />
+              <Button
+                title="Compartilhar"
+                variant="ghost"
+                onPress={() => playlist && void exportPlaylist(playlist)}
+              />
               <Button title="Excluir" variant="ghost" onPress={handleDelete} />
             </View>
           </Box>

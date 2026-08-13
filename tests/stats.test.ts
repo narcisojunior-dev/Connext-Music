@@ -33,8 +33,7 @@ function track(over: Partial<Track> & { id: string }): Track {
 describe('contagem de reprodução', () => {
   it('só conta depois de metade da faixa', () => {
     const tracker = createPlayTracker();
-    const at = (position: number) =>
-      tracker.onProgress({ trackId: 'a', position, duration: 200 });
+    const at = (position: number) => tracker.onProgress({ trackId: 'a', position, duration: 200 });
 
     assert.equal(at(10), false);
     assert.equal(at(99), false);
@@ -43,8 +42,7 @@ describe('contagem de reprodução', () => {
 
   it('conta uma vez só, mesmo voltando e passando de novo', () => {
     const tracker = createPlayTracker();
-    const at = (position: number) =>
-      tracker.onProgress({ trackId: 'a', position, duration: 200 });
+    const at = (position: number) => tracker.onProgress({ trackId: 'a', position, duration: 200 });
 
     assert.equal(at(120), true);
     assert.equal(at(130), false);
