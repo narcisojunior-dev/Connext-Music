@@ -1,4 +1,14 @@
-# 🎵 Connext Music
+<p align="center">
+  <img src="store/logo/marca.png" width="128" alt="Connext Music — X formado por duas semínimas cruzadas">
+</p>
+
+<h1 align="center">Connext Music</h1>
+
+<p align="center">
+  Player de música local para iPhone. Sem streaming, sem conta, sem internet.
+</p>
+
+---
 
 Player de música local para iOS. O app varre os arquivos de áudio que você adiciona à pasta
 `Documents/` do próprio app (via iTunes File Sharing ou o app Arquivos) e os reproduz com suporte a
@@ -904,6 +914,40 @@ No simulador, com **1120 faixas**:
 O scan incremental custava **1702ms** antes da #25: o scanner cedia o event loop a cada 25
 arquivos, pagando 44 idas ao `setTimeout` mesmo sem ler nenhuma tag. Passou a ceder por orçamento
 de tempo (32ms).
+
+---
+
+## Marca
+
+<img src="store/logo/icone.png" width="96" align="right" alt="Ícone do app">
+
+O símbolo é a letra **X** construída com duas semínimas espelhadas: as hastes se cruzam e o X aparece
+na estrutura, em vez de ser desenhado por cima dela. Quem não repara na música vê um X; quem repara
+vê duas notas.
+
+Ele **não** tem bandeira de colcheia, e isso foi decidido por teste. Três variantes — bandeira larga,
+curta e sem — foram comparadas a 88px, o tamanho em que um ícone é realmente visto. Nas duas
+primeiras a bandeira virava um traço solto que competia com o cruzamento e enfraquecia a leitura do
+X; sem ela, a diagonal sobrevive inteira.
+
+A geometria é calculada, não estimada: as pontas das hastes são cortadas perpendicularmente ao
+próprio eixo (não na horizontal), o espelhamento é exato em `x=512`, e a marca sobe 9,3px para o
+centro óptico — a massa desce até a base das cabeças, então centralizar pela caixa a deixaria baixa
+demais. As cabeças ficam a 21°, a inclinação da notação manuscrita.
+
+As cores são as do app, num gradiente de `#8CBEFD` a `#2563EB` seguindo a diagonal em que se lê uma
+partitura.
+
+| Arquivo                     | Uso                                                    |
+| --------------------------- | ------------------------------------------------------ |
+| `store/logo/marca.svg`      | Símbolo, fundo transparente                            |
+| `store/logo/icone.svg`      | Símbolo sobre o fundo do tema — origem do ícone do app |
+| `store/logo/marca-mono.svg` | Monocromática, para fundo claro ou impressão           |
+| `store/logo/FILOSOFIA.md`   | A filosofia de design que guiou as escolhas            |
+
+O ícone do app (`assets/images/icon.png`) e o splash (`assets/images/splash-icon.png`) são exportados
+desses SVGs. Ao trocá-los, rode `npx expo prebuild -p ios --clean` — o catálogo de assets do Xcode é
+gerado, e sem isso o build continua com o ícone antigo.
 
 ---
 
