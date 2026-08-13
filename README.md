@@ -945,9 +945,21 @@ partitura.
 | `store/logo/marca-mono.svg` | Monocromática, para fundo claro ou impressão           |
 | `store/logo/FILOSOFIA.md`   | A filosofia de design que guiou as escolhas            |
 
-O ícone do app (`assets/images/icon.png`) e o splash (`assets/images/splash-icon.png`) são exportados
-desses SVGs. Ao trocá-los, rode `npx expo prebuild -p ios --clean` — o catálogo de assets do Xcode é
-gerado, e sem isso o build continua com o ícone antigo.
+Os PNGs saem de `store/logo/render.py`, um rasterizador próprio, e **não** de um conversor de SVG. O
+`qlmanage` do macOS — único conversor disponível aqui — compõe o SVG sobre **branco**: o PNG sai com
+canal alfa e passa numa checagem ingênua de `hasAlpha`, mas todos os pixels ficam opacos. Foi assim
+que a splash screen apareceu com um quadrado branco atrás da marca.
+
+```bash
+python3 store/logo/render.py   # regenera ícone, splash e as variantes
+```
+
+Ao trocar ícone ou splash:
+
+1. `npx expo prebuild -p ios --clean` — o catálogo de assets do Xcode é gerado; sem isso o build
+   continua com o anterior.
+2. **Desinstale o app do aparelho ou simulador antes de reinstalar.** O iOS guarda um snapshot da
+   tela de lançamento e continua exibindo o splash antigo mesmo depois de um build novo.
 
 ---
 
