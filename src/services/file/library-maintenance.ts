@@ -99,6 +99,47 @@ export function partitionMissing(tracks: Track[]): { present: Track[]; missing: 
   return { present, missing };
 }
 
+/**
+ * Apaga o arquivo de áudio do disco.
+ *
+ * **Irreversível.** O iOS não tem lixeira para o sandbox de um app: o arquivo
+ * some e não há de onde restaurá-lo. Quem chama precisa ter confirmado com o
+ * usuário antes.
+ *
+ * Devolve `true` quando o arquivo deixou de existir — inclusive se já não
+ * existia, porque nesse caso o objetivo de quem chamou já está satisfeito e
+ * tratar como falha só produziria um alerta confuso.
+ */
+export function deleteTrackFile(url: string): boolean {
+  try {
+    const file = new File(url);
+    if (!file.exists) return true;
+
+    file.delete();
+    return !file.exists;
+  } catch (error) {
+    console.warn('[manutenção] não foi possível apagar o arquivo:', error);
+    return false;
+  }
+}
+
+/**
+ * Apaga a capa em cache de uma faixa.
+ *
+ * Chamada junto do arquivo: a capa é derivada dele e, sem a faixa, viraria um
+ * arquivo órfão que nada mais referencia. Falhar aqui não é problema — o pior
+ * caso são alguns kilobytes ocupados até a próxima limpeza de cache.
+ */
+export function deleteTrackArtwork(artworkPath: string | null): void {
+  if (!artworkPath) return;
+  try {
+    const file = new File(artworkPath);
+    if (file.exists) file.delete();
+  } catch (error) {
+    console.warn('[manutenção] não foi possível apagar a capa:', error);
+  }
+}
+
 /** `1234567` → `1,2 MB`. Usa base decimal, como o iOS mostra no Ajustes. */
 export function formatBytes(bytes: number): string {
   if (bytes < 1000) return `${bytes} B`;

@@ -532,6 +532,25 @@ some da tela sem explicação.
 
 ---
 
+## Remover ou apagar
+
+A folha de long-press tem **duas** ações que parecem a mesma coisa e não são:
+
+| Ação                      | O que faz                                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| **Remover da biblioteca** | Tira a faixa da lista. O arquivo continua no aparelho e **volta no próximo scan**. |
+| **Apagar do aparelho**    | Apaga o arquivo. Irreversível — o sandbox do iOS não tem lixeira.                  |
+
+A segunda pede confirmação **duas vezes**: é a única ação do app que destrói algo que o usuário não
+tem como recuperar. Junto do arquivo vão a capa em cache (que ficaria órfã) e as referências nas
+playlists. Se a faixa estiver tocando, a reprodução para antes — senão o player seguiria com um
+arquivo que não existe mais e o próximo comando falharia sem explicação na tela.
+
+Quando o iOS recusa a exclusão, a faixa **continua** na biblioteca e o alerta diz isso, em vez de
+sumir da lista e reaparecer no scan seguinte.
+
+---
+
 ## Playlists
 
 CRUD completo com reordenação por arrastar, persistido no AsyncStorage junto da biblioteca.

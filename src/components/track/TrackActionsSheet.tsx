@@ -7,8 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
-import { addToQueue } from '@/services/player/queue-manager';
+import { deleteTrackArtwork, deleteTrackFile } from '@/services/file/library-maintenance';
+import { addToQueue, stop } from '@/services/player/queue-manager';
 import { useLibraryStore } from '@/stores/library-store';
+import { usePlayerStore } from '@/stores/player-store';
 import { usePlaylistStore } from '@/stores/playlist-store';
 import type { Track } from '@/types/track';
 import { formatDuration, formatFileSize } from '@/utils/formatters';
@@ -96,8 +98,8 @@ export function TrackActionsSheet({ track, onClose }: TrackActionsSheetProps) {
   const handleRemove = useCallback(() => {
     if (!track) return;
     Alert.alert(
-      'Excluir da biblioteca',
-      `Remover "${track.title}" da biblioteca? O arquivo continua no aparelho e volta no próximo scan.`,
+      'Remover da biblioteca',
+      `Tirar "${track.title}" da lista? O arquivo continua no aparelho e volta no próximo scan.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -110,6 +112,58 @@ export function TrackActionsSheet({ track, onClose }: TrackActionsSheetProps) {
             removeTrack(track.id);
             close();
           },
+        },
+      ],
+    );
+  }, [track, removeTrack, purgeTrack, close]);
+
+  /**
+   * Apaga o arquivo do aparelho.
+   *
+   * Dois passos de confirmacao, e nao um: e a unica acao do app que destroi
+   * algo que o usuario nao tem como recuperar — o sandbox do iOS nao tem
+   * lixeira. O primeiro alerta explica, o segundo pede a intencao de novo.
+   */
+  const handleDeleteFile = useCallback(() => {
+    if (!track) return;
+
+    const apagar = () => {
+      const apagou = deleteTrackFile(track.url);
+
+      if (!apagou) {
+        Alert.alert(
+          'Não foi possível apagar',
+          'O arquivo pode estar em uso ou protegido. Ele continua na sua biblioteca.',
+        );
+        return;
+      }
+
+      // Parar antes de remover, se for a faixa tocando: o player seguiria com
+      // um arquivo que nao existe mais, e o proximo comando falharia sem
+      // explicacao na tela.
+      if (usePlayerStore.getState().currentTrack?.id === track.id) {
+        void stop();
+      }
+
+      deleteTrackArtwork(track.artwork);
+      purgeTrack(track.id);
+      removeTrack(track.id);
+      close();
+    };
+
+    Alert.alert(
+      'Apagar do aparelho',
+      `"${track.title}" será apagada permanentemente do seu iPhone. Não dá para desfazer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Apagar',
+          style: 'destructive',
+          onPress: () =>
+            Alert.alert('Tem certeza?', 'O arquivo será apagado para sempre.', [
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Apagar mesmo assim', style: 'destructive', onPress: apagar },
+            ]),
         },
       ],
     );
@@ -175,11 +229,12 @@ export function TrackActionsSheet({ track, onClose }: TrackActionsSheetProps) {
                   label="Compartilhar arquivo"
                   onPress={() => void handleShare()}
                 />
+                <Row icon="eye-off-outline" label="Remover da biblioteca" onPress={handleRemove} />
                 <Row
                   icon="trash-outline"
-                  label="Excluir da biblioteca"
+                  label="Apagar do aparelho"
                   destructive
-                  onPress={handleRemove}
+                  onPress={handleDeleteFile}
                 />
               </Box>
             )}
