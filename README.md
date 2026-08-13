@@ -14,7 +14,7 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-**25 de 28 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 a v0.9 em andamento.
+**26 de 28 issues concluídas.** Milestones v0.1 a v0.6 e v0.9 completos; v0.7 e v0.8 fechados exceto pelas ressalvas.
 
 | Issue                                                               | Escopo                               | Milestone | Status       |
 | ------------------------------------------------------------------- | ------------------------------------ | --------- | ------------ |
@@ -45,7 +45,7 @@ background playback, lock screen e Control Center.
 | [#25](https://github.com/narcisojunior-dev/Connext-Music/issues/25) | Otimização de performance            | v0.9      | ✅           |
 | [#26](https://github.com/narcisojunior-dev/Connext-Music/issues/26) | Testes automatizados                 | v0.9      | ✅           |
 | [#27](https://github.com/narcisojunior-dev/Connext-Music/issues/27) | Preparação para App Store            | v1.0      | ⏳           |
-| [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ⏳           |
+| [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ✅           |
 
 \* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.
 
@@ -579,6 +579,35 @@ parece defeito do app, e não ausência de arquivos.
 
 A validação distingue três casos, que pedem ações diferentes de quem está importando: não é JSON,
 não é um arquivo do Connext, ou foi exportado por uma versão mais nova do app.
+
+---
+
+## Biblioteca por pastas (issue #28)
+
+A aba **Pastas** mostra a biblioteca como ela está no disco, e não como as tags dizem. Quem organiza
+a coleção em `Rock/` ou `MPB/1970/` já fez um trabalho de classificação com um critério próprio; a
+aba mostra esse trabalho.
+
+`Track.folderPath` guarda o caminho relativo a `Documents/`, derivado do próprio `uri` durante a
+varredura — o scanner já descia nas subpastas, só descartava a informação.
+
+> `folderPath` **não** é preservado no `carryUserData`. Aquele helper carrega o que só existe no app
+> (favoritos, contagem de reproduções); a pasta é propriedade do arquivo. Se você mover uma música
+> de `Rock/` para `MPB/`, o próximo scan tem que refletir isso.
+
+A árvore é derivada em memória, como as playlists inteligentes. Duas decisões de navegação:
+
+- **Pastas de passagem são colapsadas.** `MPB/` que só contém `1970/` e nada solto vira um nó só,
+  `MPB/1970`. Sem isso, chegar na música exigiria um toque por nível de uma hierarquia que o usuário
+  criou para organizar, não para percorrer.
+- **A fila de uma pasta inclui as subpastas.** Quem abre `Rock/` e toca a primeira faixa espera
+  ouvir `Rock/` inteiro, não parar quando a faixa acabar.
+
+Faixas na raiz de `Documents/` ficam num nó próprio, sem pasta inventada.
+
+Na importação (issue #19), Ajustes pergunta um nome de pasta antes de abrir o seletor. O seletor do
+iOS não informa de que pasta cada arquivo veio, então reconstruir a origem é impossível — nomear o
+lote é o mais perto que dá para chegar.
 
 ---
 
