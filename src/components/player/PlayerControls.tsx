@@ -7,6 +7,9 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
+import { GlassContainer } from 'expo-glass-effect';
+
+import { GlassSurface } from '@/components/ui/glass-surface';
 import { IconButton } from '@/components/ui/icon-button';
 import { Text } from '@/components/ui/text';
 import { JUMP_SECONDS } from '@/services/player/constants';
@@ -83,7 +86,9 @@ export function PlayerControls({
 
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
+      {/* O `spacing` e o que produz o efeito liquido: abaixo dessa distancia os
+          vidros vizinhos se fundem em vez de ficarem lado a lado. */}
+      <GlassContainer spacing={20} style={styles.row}>
         <IconButton
           name="shuffle"
           accessibilityLabel={shuffleMode ? 'Desativar modo aleatório' : 'Ativar modo aleatório'}
@@ -92,11 +97,13 @@ export function PlayerControls({
           onPress={withHaptics(onToggleShuffle)}
         />
 
-        <IconButton
-          name="play-skip-back"
-          accessibilityLabel="Faixa anterior"
-          onPress={withHaptics(onPrevious)}
-        />
+        <GlassSurface interactive style={styles.glassRound}>
+          <IconButton
+            name="play-skip-back"
+            accessibilityLabel="Faixa anterior"
+            onPress={withHaptics(onPrevious)}
+          />
+        </GlassSurface>
 
         <View>
           <IconButton
@@ -110,13 +117,17 @@ export function PlayerControls({
         </View>
 
         <Animated.View style={playStyle}>
-          <IconButton
-            name={isPlaying ? 'pause' : 'play'}
-            accessibilityLabel={isPlaying ? 'Pausar' : 'Reproduzir'}
-            size="lg"
-            background="primary"
-            onPress={handleTogglePlay}
-          />
+          {/* Vidro tingido com a cor primaria em vez do fundo solido: o
+              play/pause continua sendo o elemento dominante, mas passa a
+              refratar a capa por tras dele como os vizinhos. */}
+          <GlassSurface interactive tintColor="rgba(59,130,246,0.55)" style={styles.glassPrimary}>
+            <IconButton
+              name={isPlaying ? 'pause' : 'play'}
+              accessibilityLabel={isPlaying ? 'Pausar' : 'Reproduzir'}
+              size="lg"
+              onPress={handleTogglePlay}
+            />
+          </GlassSurface>
         </Animated.View>
 
         <View>
@@ -130,11 +141,13 @@ export function PlayerControls({
           </Text>
         </View>
 
-        <IconButton
-          name="play-skip-forward"
-          accessibilityLabel="Próxima faixa"
-          onPress={withHaptics(onNext)}
-        />
+        <GlassSurface interactive style={styles.glassRound}>
+          <IconButton
+            name="play-skip-forward"
+            accessibilityLabel="Próxima faixa"
+            onPress={withHaptics(onNext)}
+          />
+        </GlassSurface>
 
         <IconButton
           name={repeatIcon(repeatMode)}
@@ -143,7 +156,7 @@ export function PlayerControls({
           active={repeatMode !== 'off'}
           onPress={withHaptics(onCycleRepeat)}
         />
-      </View>
+      </GlassContainer>
 
       {/* Estado do repeat por extenso: o ícone sozinho não distingue os modos. */}
       {repeatMode !== 'off' && (
@@ -156,6 +169,14 @@ export function PlayerControls({
 }
 
 const styles = StyleSheet.create({
+  glassRound: {
+    borderRadius: 22,
+    overflow: 'hidden',
+  },
+  glassPrimary: {
+    borderRadius: 32,
+    overflow: 'hidden',
+  },
   container: {
     gap: 8,
   },

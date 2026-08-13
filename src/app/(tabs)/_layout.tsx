@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { MiniPlayer } from '@/components/player/MiniPlayer';
+import { GlassSurface } from '@/components/ui/glass-surface';
 import { useTheme } from '@/hooks/use-theme';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -61,7 +61,9 @@ export default function TabsLayout() {
           }),
           tabBarBackground: () =>
             Platform.OS === 'ios' ? (
-              <BlurView tint="dark" intensity={80} style={StyleSheet.absoluteFill} />
+              // `regular`, e nao `clear`: com `clear` a lista continua legível
+              // atrás da barra e compete com os rótulos das abas.
+              <GlassSurface glassStyle="regular" style={StyleSheet.absoluteFill} />
             ) : null,
         }}
       >
