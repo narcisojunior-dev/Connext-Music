@@ -16,36 +16,36 @@ background playback, lock screen e Control Center.
 
 **22 de 28 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 e v0.8 em andamento.
 
-| Issue                                                               | Escopo                               | Milestone | Status |
-| ------------------------------------------------------------------- | ------------------------------------ | --------- | ------ |
-| [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1)   | Setup: dev client + arquitetura base | v0.1      | ✅     |
-| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2)   | Design System: tokens e componentes  | v0.1      | ✅     |
-| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3)   | Navegação: tabs + player modal       | v0.1      | ✅     |
-| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4)   | Estado global: Zustand + types       | v0.1      | ✅     |
-| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5)   | Scanner de arquivos iOS              | v0.2      | ✅     |
-| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6)   | Metadados ID3 + artwork em cache     | v0.2      | ✅     |
-| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7)   | Persistência + scan incremental      | v0.2      | ✅     |
-| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8)   | Player de áudio + background         | v0.3      | ✅     |
-| [#9](https://github.com/narcisojunior-dev/Connext-Music/issues/9)   | Fila, shuffle e repeat               | v0.3      | ✅     |
-| [#10](https://github.com/narcisojunior-dev/Connext-Music/issues/10) | Tela de Biblioteca completa          | v0.3      | ✅     |
-| [#11](https://github.com/narcisojunior-dev/Connext-Music/issues/11) | Tela do Player + saltos de 10s       | v0.4      | ✅     |
-| [#12](https://github.com/narcisojunior-dev/Connext-Music/issues/12) | Mini player                          | v0.4      | ✅     |
-| [#13](https://github.com/narcisojunior-dev/Connext-Music/issues/13) | Busca global                         | v0.5      | ✅     |
-| [#14](https://github.com/narcisojunior-dev/Connext-Music/issues/14) | Playlists: CRUD e reordenação        | v0.5      | ✅     |
-| [#15](https://github.com/narcisojunior-dev/Connext-Music/issues/15) | Favoritos + ações de long-press      | v0.5      | ✅     |
-| [#16](https://github.com/narcisojunior-dev/Connext-Music/issues/16) | Animações e microinterações          | v0.5      | ✅\*   |
-| [#17](https://github.com/narcisojunior-dev/Connext-Music/issues/17) | Estatísticas de reprodução           | v0.6      | ✅     |
-| [#18](https://github.com/narcisojunior-dev/Connext-Music/issues/18) | Ajustes, sleep timer e manutenção    | v0.6      | ✅\*\* |
-| [#19](https://github.com/narcisojunior-dev/Connext-Music/issues/19) | Importação via Document Picker       | v0.6      | ✅     |
-| [#20](https://github.com/narcisojunior-dev/Connext-Music/issues/20) | Modo carro                           | v0.7      | ✅     |
-| [#21](https://github.com/narcisojunior-dev/Connext-Music/issues/21) | Equalizador básico                   | v0.7      | 🚫\*\*\* |
-| [#22](https://github.com/narcisojunior-dev/Connext-Music/issues/22) | Compartilhamento de playlists        | v0.7      | ✅     |
+| Issue                                                               | Escopo                               | Milestone | Status     |
+| ------------------------------------------------------------------- | ------------------------------------ | --------- | ---------- |
+| [#1](https://github.com/narcisojunior-dev/Connext-Music/issues/1)   | Setup: dev client + arquitetura base | v0.1      | ✅         |
+| [#2](https://github.com/narcisojunior-dev/Connext-Music/issues/2)   | Design System: tokens e componentes  | v0.1      | ✅         |
+| [#3](https://github.com/narcisojunior-dev/Connext-Music/issues/3)   | Navegação: tabs + player modal       | v0.1      | ✅         |
+| [#4](https://github.com/narcisojunior-dev/Connext-Music/issues/4)   | Estado global: Zustand + types       | v0.1      | ✅         |
+| [#5](https://github.com/narcisojunior-dev/Connext-Music/issues/5)   | Scanner de arquivos iOS              | v0.2      | ✅         |
+| [#6](https://github.com/narcisojunior-dev/Connext-Music/issues/6)   | Metadados ID3 + artwork em cache     | v0.2      | ✅         |
+| [#7](https://github.com/narcisojunior-dev/Connext-Music/issues/7)   | Persistência + scan incremental      | v0.2      | ✅         |
+| [#8](https://github.com/narcisojunior-dev/Connext-Music/issues/8)   | Player de áudio + background         | v0.3      | ✅         |
+| [#9](https://github.com/narcisojunior-dev/Connext-Music/issues/9)   | Fila, shuffle e repeat               | v0.3      | ✅         |
+| [#10](https://github.com/narcisojunior-dev/Connext-Music/issues/10) | Tela de Biblioteca completa          | v0.3      | ✅         |
+| [#11](https://github.com/narcisojunior-dev/Connext-Music/issues/11) | Tela do Player + saltos de 10s       | v0.4      | ✅         |
+| [#12](https://github.com/narcisojunior-dev/Connext-Music/issues/12) | Mini player                          | v0.4      | ✅         |
+| [#13](https://github.com/narcisojunior-dev/Connext-Music/issues/13) | Busca global                         | v0.5      | ✅         |
+| [#14](https://github.com/narcisojunior-dev/Connext-Music/issues/14) | Playlists: CRUD e reordenação        | v0.5      | ✅         |
+| [#15](https://github.com/narcisojunior-dev/Connext-Music/issues/15) | Favoritos + ações de long-press      | v0.5      | ✅         |
+| [#16](https://github.com/narcisojunior-dev/Connext-Music/issues/16) | Animações e microinterações          | v0.5      | ✅\*       |
+| [#17](https://github.com/narcisojunior-dev/Connext-Music/issues/17) | Estatísticas de reprodução           | v0.6      | ✅         |
+| [#18](https://github.com/narcisojunior-dev/Connext-Music/issues/18) | Ajustes, sleep timer e manutenção    | v0.6      | ✅\*\*     |
+| [#19](https://github.com/narcisojunior-dev/Connext-Music/issues/19) | Importação via Document Picker       | v0.6      | ✅         |
+| [#20](https://github.com/narcisojunior-dev/Connext-Music/issues/20) | Modo carro                           | v0.7      | ✅         |
+| [#21](https://github.com/narcisojunior-dev/Connext-Music/issues/21) | Equalizador básico                   | v0.7      | 🚫\*\*\*   |
+| [#22](https://github.com/narcisojunior-dev/Connext-Music/issues/22) | Compartilhamento de playlists        | v0.7      | ✅         |
 | [#23](https://github.com/narcisojunior-dev/Connext-Music/issues/23) | Widget iOS (tela de início)          | v0.8      | ✅\*\*\*\* |
-| [#24](https://github.com/narcisojunior-dev/Connext-Music/issues/24) | Atalhos Siri                         | v0.8      | ⏳     |
-| [#25](https://github.com/narcisojunior-dev/Connext-Music/issues/25) | Otimização de performance            | v0.9      | ⏳     |
-| [#26](https://github.com/narcisojunior-dev/Connext-Music/issues/26) | Testes automatizados                 | v0.9      | ⏳     |
-| [#27](https://github.com/narcisojunior-dev/Connext-Music/issues/27) | Preparação para App Store            | v1.0      | ⏳     |
-| [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ⏳     |
+| [#24](https://github.com/narcisojunior-dev/Connext-Music/issues/24) | Atalhos Siri                         | v0.8      | ⏳         |
+| [#25](https://github.com/narcisojunior-dev/Connext-Music/issues/25) | Otimização de performance            | v0.9      | ⏳         |
+| [#26](https://github.com/narcisojunior-dev/Connext-Music/issues/26) | Testes automatizados                 | v0.9      | ⏳         |
+| [#27](https://github.com/narcisojunior-dev/Connext-Music/issues/27) | Preparação para App Store            | v1.0      | ⏳         |
+| [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ⏳         |
 
 \* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.
 
@@ -149,21 +149,21 @@ O iPhone precisa estar **na mesma rede Wi-Fi** que o Mac — o dev client busca 
 Estes critérios de aceite estão implementados mas **não foram observados** — o simulador não os
 reproduz e não há como automatizar o toque:
 
-| Origem  | O que testar                                                                                          |
-| ------- | ----------------------------------------------------------------------------------------------------- |
-| #8, #11 | Controles na tela de bloqueio e na Central de Controle: título, artista, capa, play/pause, ±10s, seek |
-| #8      | Controles de fones físicos e AirPods (play/pause, próxima)                                            |
-| #11     | Arrastar o slider de progresso; retorno háptico dos botões                                            |
-| #10     | Scroll a 60fps com mais de 100 faixas                                                                 |
-| #12     | Gestos do mini player: toque abre o player, arrasto horizontal pula faixa, arrasto para baixo encerra |
+| Origem   | O que testar                                                                                          |
+| -------- | ----------------------------------------------------------------------------------------------------- |
+| #8, #11  | Controles na tela de bloqueio e na Central de Controle: título, artista, capa, play/pause, ±10s, seek |
+| #8       | Controles de fones físicos e AirPods (play/pause, próxima)                                            |
+| #11      | Arrastar o slider de progresso; retorno háptico dos botões                                            |
+| #10      | Scroll a 60fps com mais de 100 faixas                                                                 |
+| #12      | Gestos do mini player: toque abre o player, arrasto horizontal pula faixa, arrasto para baixo encerra |
 | #14, #15 | Arrastar para reordenar playlist; menu de long-press; compartilhar e remover faixa                    |
-| #16     | Escala do play/pause, pulso e crossfade da capa, marquee, subida do mini player — e se rodam a 60fps |
-| #16     | Intensidade do háptico por intenção: leve no transporte, média ao favoritar, forte no long-press     |
-| #18     | Fade no fim da faixa, normalização por ReplayGain e o fade-out do sleep timer — tudo isso é ouvido |
-| #19     | O seletor de arquivos do iOS: filtro de tipos, seleção múltipla e cópia vinda de iCloud/Drive     |
-| #20     | Legibilidade do modo carro a 1 m, rotação para paisagem e o auto-lock realmente desativado        |
-| #22     | A folha de compartilhamento e o seletor de arquivos do iOS ao exportar/importar playlists         |
-| #23     | O widget na tela de início: aparece na galeria, mostra a faixa e atualiza ao trocar de música     |
+| #16      | Escala do play/pause, pulso e crossfade da capa, marquee, subida do mini player — e se rodam a 60fps  |
+| #16      | Intensidade do háptico por intenção: leve no transporte, média ao favoritar, forte no long-press      |
+| #18      | Fade no fim da faixa, normalização por ReplayGain e o fade-out do sleep timer — tudo isso é ouvido    |
+| #19      | O seletor de arquivos do iOS: filtro de tipos, seleção múltipla e cópia vinda de iCloud/Drive         |
+| #20      | Legibilidade do modo carro a 1 m, rotação para paisagem e o auto-lock realmente desativado            |
+| #22      | A folha de compartilhamento e o seletor de arquivos do iOS ao exportar/importar playlists             |
+| #23      | O widget na tela de início: aparece na galeria, mostra a faixa e atualiza ao trocar de música         |
 
 > A correção do commit `6e1e244` foi motivada por um destes: opções de sessão de áudio inválidas
 > para a categoria `playback` impediam o Now Playing de aparecer. O simulador aceitava a
@@ -611,7 +611,7 @@ regra, não o usuário.
 ### Reprodução
 
 - **Fade entre faixas** — baixa o volume no fim da faixa e volta ao normal na seguinte. A issue
-  pedia *crossfade*, mas o Track Player mantém uma única instância de player: não há como sobrepor
+  pedia _crossfade_, mas o Track Player mantém uma única instância de player: não há como sobrepor
   duas faixas. O nome segue o que o código faz.
 - **Normalizar volume** — usa o **ReplayGain gravado no arquivo**. Não analisa o áudio; medir volume
   de verdade exigiria decodificar cada faixa inteira, o que não cabe num scan no telefone. Arquivo
