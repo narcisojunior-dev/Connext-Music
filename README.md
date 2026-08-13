@@ -311,9 +311,12 @@ No iOS a tab bar usa `position: absolute` + `BlurView` para o glassmorphism do P
 consequência prática: **telas com scroll precisam de padding inferior**, senão o último item fica
 escondido atrás da barra.
 
-Todas as rotas do fluxo principal estão implementadas. O componente `PlaceholderScreen` sobrou em
-dois lugares, e nos dois como **estado vazio**, não como tela por fazer: a Biblioteca sem nenhuma
-música e o Player sem nada tocando.
+Todas as rotas estão implementadas. Telas sem conteúdo — a Biblioteca sem música, o Player sem faixa
+ativa, as Estatísticas sem reproduções — usam o `EmptyState`, que diz o que fazer em seguida.
+
+O `PlaceholderScreen`, que estampava "EM CONSTRUÇÃO · Issue #N", foi removido: não há mais tela por
+implementar, e ele já tinha causado um bug — a Biblioteca vazia se anunciava como inacabada logo na
+primeira abertura.
 
 ---
 
