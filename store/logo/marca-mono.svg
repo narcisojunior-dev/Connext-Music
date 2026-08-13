@@ -1,0 +1,19 @@
+<svg color="#0A0E1A" xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  
+
+  <!-- Duas seminimas espelhadas. As hastes se cruzam e formam o X; as cabecas
+       inclinadas a 21 graus dizem que sao notas. Sem bandeira de proposito:
+       a 88px ela virava ruido e enfraquecia a leitura do X. -->
+  <g transform="translate(0 9.3)">
+    <g fill="currentColor">
+      <path d="M 311.7 204.5 L 364.3 171.5 L 724.3 745.5 L 671.7 778.5 Z"/>
+      <ellipse cx="698" cy="762" rx="100" ry="74"
+               transform="rotate(-21 698 762)"/>
+    </g>
+    <g fill="currentColor">
+      <path d="M 659.7 171.5 L 712.3 204.5 L 352.3 778.5 L 299.7 745.5 Z"/>
+      <ellipse cx="326" cy="762" rx="100" ry="74"
+               transform="rotate(21 326 762)"/>
+    </g>
+  </g>
+</svg>

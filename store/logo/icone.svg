@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Gradiente na diagonal da leitura: claro na origem, saturado na chegada -->
+    <linearGradient id="a" x1="0.2" y1="0.05" x2="0.8" y2="0.95">
+      <stop offset="0" stop-color="#8CBEFD"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="b" x1="0.8" y1="0.05" x2="0.2" y2="0.95">
+      <stop offset="0" stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#0A0E1A"/>
+
+  <!-- Duas seminimas espelhadas. As hastes se cruzam e formam o X; as cabecas
+       inclinadas a 21 graus dizem que sao notas. Sem bandeira de proposito:
+       a 88px ela virava ruido e enfraquecia a leitura do X. -->
+  <g transform="translate(0 9.3)">
+    <g fill="url(#a)">
+      <path d="M 311.7 204.5 L 364.3 171.5 L 724.3 745.5 L 671.7 778.5 Z"/>
+      <ellipse cx="698" cy="762" rx="100" ry="74"
+               transform="rotate(-21 698 762)"/>
+    </g>
+    <g fill="url(#b)">
+      <path d="M 659.7 171.5 L 712.3 204.5 L 352.3 778.5 L 299.7 745.5 Z"/>
+      <ellipse cx="326" cy="762" rx="100" ry="74"
+               transform="rotate(21 326 762)"/>
+    </g>
+  </g>
+</svg>

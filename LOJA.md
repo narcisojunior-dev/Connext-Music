@@ -181,7 +181,7 @@ pela folha de compartilhamento do iOS.
 
 ### Pronto
 
-- [x] Ícone 1024×1024 (`assets/images/icon.png`, fonte em `assets/brand/icon.svg`)
+- [x] Ícone 1024×1024 (`assets/images/icon.png`, fonte em `store/logo/icone.svg`)
 - [x] Splash screen
 - [x] `app.json` completo: nome de exibição, versão, build number, bundle ID, permissões
 - [x] `eas.json` com os perfis `development`, `preview` e `production`
@@ -202,8 +202,10 @@ pela folha de compartilhamento do iOS.
 - [ ] **Screenshots.** Há capturas de tela em `store/screenshots/`, tiradas do simulador com uma
       biblioteca sintética. Servem de rascunho, **não** para publicar: os nomes são "Faixa 001" e as
       capas são blocos de cor. Refaça com música real antes de enviar.
-- [ ] **Revisar o ícone com olhos de designer.** O atual foi gerado a partir de um SVG feito à mão,
-      é coerente com a paleta, mas não passou por decisão de marca.
+- [ ] **Revisar a marca com olhos de designer.** O X de duas semínimas cruzadas está em
+      `store/logo/`, com a filosofia de design que o guiou em `FILOSOFIA.md`. A geometria é
+      calculada, não estimada, e a forma foi escolhida por teste de redução a 88px — mas nenhuma
+      marca deveria ir para a loja sem passar por um par de olhos treinados.
 - [ ] Rodar o [roteiro de testes em aparelho](TESTES-APARELHO.md) inteiro.
 
 ---

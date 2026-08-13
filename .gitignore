@@ -45,3 +45,9 @@ example
 # generated native folders
 /ios
 /android
+
+# Skills instaladas por `npx skills add` — 7MB de fontes que nao pertencem ao
+# repositorio do app. Reinstale com:
+#   npx skills add https://github.com/anthropics/skills --skill canvas-design
+.agents/skills/
+.claude/skills/
