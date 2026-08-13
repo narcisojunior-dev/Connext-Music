@@ -74,10 +74,16 @@ export function usePlaylistTransfer() {
   const importPlaylist = useCallback(async () => {
     try {
       const picked = await DocumentPicker.getDocumentAsync({
-        // `public.json` sozinho esconderia arquivos que chegam de apps de nuvem
-        // com o tipo genérico; `public.data` os mantém selecionáveis, e a
-        // validação do conteúdo é quem decide de fato.
-        type: ['public.json', 'public.data'],
+        // MIME types, não UTIs: o módulo converte com `UTType(mimeType:)` e
+        // descarta o que não converter, então uma lista de UTIs chegaria vazia
+        // ao seletor e nada ficaria selecionável.
+        //
+        // `*/*` é rede de segurança: um arquivo de playlist que o iOS tipar
+        // como genérico ficaria inalcançável, e um recurso que não dá para
+        // usar é pior que um seletor pouco filtrado. Quem decide de fato é a
+        // validação do conteúdo, que rejeita o que não for nosso com uma
+        // mensagem clara.
+        type: ['application/json', '*/*'],
         multiple: false,
         copyToCacheDirectory: true,
       });

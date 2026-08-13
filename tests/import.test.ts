@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
@@ -7,6 +9,8 @@ import {
   sanitizeFolderName,
   uniqueName,
 } from '@/services/file/file-importer';
+
+const SRC = join(import.meta.dirname, '..', 'src');
 
 describe('validação de formato na importação', () => {
   it('aceita as extensões que o scanner também encontra', () => {
@@ -109,5 +113,54 @@ describe('pasta de destino nomeada', () => {
 
   it('limita o tamanho', () => {
     assert.ok(sanitizeFolderName('a'.repeat(200))!.length <= 60);
+  });
+});
+
+describe('tipos declarados ao seletor de arquivos', () => {
+  /**
+   * O `expo-document-picker` converte cada tipo com `UTType(mimeType:)` e
+   * descarta com `compactMap` o que não converter. Uma lista de UTIs vira uma
+   * lista vazia, e o `UIDocumentPickerViewController` abre com **nada
+   * selecionável** — o usuário vê as próprias músicas acinzentadas.
+   *
+   * Como o defeito é o formato de uma constante, e não um comportamento, o
+   * teste lê o fonte.
+   */
+  const arquivos = [
+    join(SRC, 'services', 'file', 'file-importer.ts'),
+    join(SRC, 'hooks', 'use-playlist-transfer.ts'),
+  ];
+
+  it('usa MIME types, nunca UTIs', () => {
+    const ofensores: string[] = [];
+
+    for (const arquivo of arquivos) {
+      const fonte = readFileSync(arquivo, 'utf8');
+      for (const bloco of fonte.matchAll(
+        /type:\s*(\[[\s\S]*?\])|ACCEPTED_TYPES\s*=\s*(\[[\s\S]*?\])/g,
+      )) {
+        const lista = bloco[1] ?? bloco[2];
+        for (const tipo of lista.matchAll(/'([^']+)'/g)) {
+          const valor = tipo[1];
+          // Um MIME type sempre tem barra; um UTI é pontuado (`public.audio`).
+          if (!valor.includes('/')) {
+            ofensores.push(`${arquivo.slice(SRC.length + 1)}: "${valor}"`);
+          }
+        }
+      }
+    }
+
+    assert.deepEqual(
+      ofensores,
+      [],
+      `estes tipos não são MIME e o seletor os descartaria:\n  ${ofensores.join('\n  ')}`,
+    );
+  });
+
+  it('a lista de áudio cobre o guarda-chuva `audio/*`', () => {
+    // Se todos os específicos forem descartados por o iOS não conhecê-los,
+    // é `audio/*` que mantém o seletor utilizável.
+    const fonte = readFileSync(arquivos[0], 'utf8');
+    assert.match(fonte, /'audio\/\*'/);
   });
 });

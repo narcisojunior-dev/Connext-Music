@@ -32,20 +32,30 @@ export function sanitizeFolderName(name: string): string | null {
 }
 
 /**
- * Tipos aceitos pelo picker.
+ * Tipos aceitos pelo seletor — **MIME types, não UTIs**.
  *
- * `public.audio` cobre os formatos que o iOS reconhece como áudio. Os UTIs
- * específicos vêm junto porque nem todo arquivo chega com o tipo declarado —
- * um FLAC vindo de um app de nuvem costuma aparecer como genérico, e sem
- * listá-lo ele ficaria acinzentado no seletor.
+ * O `expo-document-picker` converte cada entrada com `UTType(mimeType:)` e
+ * descarta com `compactMap` o que não converter. Passando UTIs (`public.audio`,
+ * `public.mp3`…) todas viram `nil`, a lista chega vazia ao
+ * `UIDocumentPickerViewController` e **nenhum arquivo fica selecionável** — foi
+ * exatamente o que aconteceu aqui: as músicas apareciam acinzentadas.
+ *
+ * `audio/*` é tratado à parte pelo módulo e vira `UTType.audio`, o guarda-chuva
+ * a que todo áudio reconhecido pelo iOS conforma. Os específicos vêm junto
+ * porque nem todo arquivo chega com o tipo declarado; os que o iOS não conhecer
+ * são descartados sem prejuízo, já que `audio/*` sustenta a lista sozinho.
  */
 const ACCEPTED_TYPES = [
-  'public.audio',
-  'public.mp3',
-  'public.mpeg-4-audio',
-  'org.xiph.flac',
-  'com.microsoft.waveform-audio',
-  'public.aac-audio',
+  'audio/*',
+  'audio/mpeg',
+  'audio/mp4',
+  'audio/x-m4a',
+  'audio/aac',
+  'audio/flac',
+  'audio/x-flac',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/ogg',
 ];
 
 export interface ImportProgress {
