@@ -14,7 +14,7 @@ import {
 } from '@/components/library';
 import { TrackActionsSheet } from '@/components/track/TrackActionsSheet';
 import { Button } from '@/components/ui/button';
-import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useLibraryScanner } from '@/hooks/use-library-scanner';
 import { useMusicImport } from '@/hooks/use-music-import';
 import { playQueue } from '@/services/player/queue-manager';
@@ -143,13 +143,11 @@ export default function LibraryScreen() {
   if (tracks.length === 0 && !isScanning) {
     return (
       <View style={styles.container}>
-        <PlaceholderScreen
-          title="Biblioteca"
-          description="Nenhuma música encontrada. Puxe para baixo para escanear a pasta Documents do app."
+        <EmptyState
           icon="musical-notes-outline"
-          issue="Issue #10"
-        />
-        <View style={styles.actions}>
+          title="Sua biblioteca está vazia"
+          description="Traga suas músicas pelo app Arquivos, ou arraste do computador pelo Finder."
+        >
           {/* Importar vem primeiro: numa biblioteca vazia, escanear nao tem o
               que achar — o usuario precisa antes colocar musica no aparelho. */}
           <Button
@@ -164,7 +162,7 @@ export default function LibraryScreen() {
             disabled={isImporting}
           />
           <Button title="Escanear biblioteca" variant="secondary" onPress={() => scan()} />
-        </View>
+        </EmptyState>
       </View>
     );
   }
@@ -248,11 +246,5 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  actions: {
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    bottom: 110,
   },
 });

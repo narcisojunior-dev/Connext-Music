@@ -14,7 +14,7 @@ import { QueueSheet } from '@/components/player/QueueSheet';
 import { sleepTimerLabel } from '@/components/settings/SleepTimerModal';
 import { FavoriteButton } from '@/components/track/FavoriteButton';
 import { IconButton } from '@/components/ui/icon-button';
-import { PlaceholderScreen } from '@/components/ui/placeholder-screen';
+import { EmptyState } from '@/components/ui/empty-state';
 import { MarqueeText } from '@/components/ui/marquee-text';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
@@ -83,11 +83,10 @@ export default function PlayerScreen() {
             <IconButton name="chevron-down" accessibilityLabel="Fechar" onPress={dismiss} />
           </View>
         </SafeAreaView>
-        <PlaceholderScreen
-          title="Player"
-          description="Nada tocando. Escolha uma música na Biblioteca."
+        <EmptyState
           icon="play-circle-outline"
-          issue="Issue #11"
+          title="Nada tocando"
+          description="Escolha uma música na Biblioteca para começar."
         />
       </View>
     );

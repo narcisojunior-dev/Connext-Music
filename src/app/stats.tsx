@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { EmptyState } from '@/components/ui/empty-state';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/hooks/use-theme';
 import { useLibraryStore } from '@/stores/library-store';
@@ -98,11 +99,12 @@ export default function StatsScreen() {
 
   if (tracks.length === 0) {
     return (
-      <View style={[styles.emptyState, { backgroundColor: theme.colors.background }]}>
-        <Ionicons name="stats-chart-outline" size={48} color={theme.colors.textMuted} />
-        <Text variant="body" color="textMuted" style={styles.emptyText}>
-          Escaneie a biblioteca e ouça algumas faixas.{'\n'}Os números aparecem aqui.
-        </Text>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <EmptyState
+          icon="stats-chart-outline"
+          title="Sem números ainda"
+          description="Escaneie a biblioteca e ouça algumas faixas. Os números aparecem aqui."
+        />
       </View>
     );
   }
@@ -191,16 +193,6 @@ export default function StatsScreen() {
 }
 
 const styles = StyleSheet.create({
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    padding: 32,
-  },
-  emptyText: {
-    textAlign: 'center',
-  },
   content: {
     padding: 16,
     gap: 28,
