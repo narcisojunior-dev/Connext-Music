@@ -41,6 +41,10 @@ background playback, lock screen e Control Center.
 | [#21](https://github.com/narcisojunior-dev/Connext-Music/issues/21) | Equalizador básico                   | v0.7      | 🚫\*\*\* |
 | [#22](https://github.com/narcisojunior-dev/Connext-Music/issues/22) | Compartilhamento de playlists        | v0.7      | ✅     |
 | [#23](https://github.com/narcisojunior-dev/Connext-Music/issues/23) | Widget iOS (tela de início)          | v0.8      | ✅\*\*\*\* |
+| [#24](https://github.com/narcisojunior-dev/Connext-Music/issues/24) | Atalhos Siri                         | v0.8      | ⏳     |
+| [#25](https://github.com/narcisojunior-dev/Connext-Music/issues/25) | Otimização de performance            | v0.9      | ⏳     |
+| [#26](https://github.com/narcisojunior-dev/Connext-Music/issues/26) | Testes automatizados                 | v0.9      | ⏳     |
+| [#27](https://github.com/narcisojunior-dev/Connext-Music/issues/27) | Preparação para App Store            | v1.0      | ⏳     |
 | [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ⏳     |
 
 \* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.
@@ -304,8 +308,9 @@ No iOS a tab bar usa `position: absolute` + `BlurView` para o glassmorphism do P
 consequência prática: **telas com scroll precisam de padding inferior**, senão o último item fica
 escondido atrás da barra.
 
-As telas ainda não implementadas usam o componente `PlaceholderScreen`, que mostra o título, o que
-a tela vai fazer e a issue que a implementa.
+Todas as rotas do fluxo principal estão implementadas. O componente `PlaceholderScreen` sobrou em
+dois lugares, e nos dois como **estado vazio**, não como tela por fazer: a Biblioteca sem nenhuma
+música e o Player sem nada tocando.
 
 ---
 
@@ -437,6 +442,20 @@ em `originalOrder` para poder restaurá-la ao desligar o shuffle, reencontrando 
 Fone desconectado pausa a reprodução em vez de continuar no alto-falante — retomar sozinho quando o
 fone volta faria a música tocar alto em situações indesejadas.
 
+### A fila na tela
+
+O ícone de lista no player abre a fila como um modal sobre ele — não como rota: sair dali tem que
+devolver exatamente a tela de onde se veio, e empilhar mais uma rota faria o botão de voltar do
+player passar por ela.
+
+Tocar numa faixa pula até ela, segurar reordena e o "x" remove. **A faixa tocando não pode ser
+removida dali**: tirá-la exigiria decidir o que tocar em seguida, e isso é função dos botões de
+pular. As já tocadas ficam esmaecidas, senão não dá para saber o que ainda vem.
+
+> Esse botão passou nove issues sem fazer nada — renderizava e respondia ao toque, mas não tinha
+> `onPress`. Existe hoje um teste (`tests/dead-buttons.test.ts`) que varre as telas atrás de
+> `IconButton` sem ação e falha apontando arquivo, linha e rótulo.
+
 > ⚠️ **Risco de manutenção conhecido.** O RNTP 4.1.2 é um módulo da arquitetura legada (herda de
 > `RCTEventEmitter`, sem `codegenConfig`) e só funciona no RN 0.86 através da camada de interop. O
 > React Native já anunciou a remoção gradual do código legado, e a v5 do RNTP ainda está em alpha.
@@ -537,6 +556,146 @@ do texto, e é por isso que o `trim()` fica fora dela.
 
 O histórico guarda os 10 últimos termos; repetir uma busca promove o termo ao topo em vez de
 duplicar.
+
+---
+
+## Compartilhar playlists (issue #22)
+
+Uma playlist vira um arquivo `.connextplaylist.json`, aberto pela folha de compartilhamento do iOS.
+Importar é o caminho inverso, pelo seletor de arquivos, no botão de download da aba **Playlists**.
+
+O arquivo guarda **título, artista, álbum e duração — nunca os `trackIds`**. O id de uma faixa é um
+hash do caminho e da data de modificação do arquivo, então não significa nada em outro aparelho;
+exportar ids produziria uma playlist que só funciona em quem a criou.
+
+Ao importar, cada entrada é procurada na biblioteca local por **título + artista**, ignorando acento
+e caixa — o mesmo tratamento da busca. A duração ficou de fora do critério de propósito: o mesmo
+álbum ripado de fontes diferentes varia alguns segundos, e usá-la descartaria pares corretos. O que
+não for encontrado é listado pelo nome, porque uma playlist que chega pela metade sem explicação
+parece defeito do app, e não ausência de arquivos.
+
+A validação distingue três casos, que pedem ações diferentes de quem está importando: não é JSON,
+não é um arquivo do Connext, ou foi exportado por uma versão mais nova do app.
+
+---
+
+## Estatísticas (issue #17)
+
+Acessível por **Ajustes → Estatísticas**. Mostra total de reproduções, tempo ouvido, quantas faixas
+já foram tocadas, um gráfico dos últimos 7 dias e os rankings de faixas e artistas.
+
+Duas ressalvas estão escritas na própria tela, porque o número seria enganoso sem elas:
+
+- **O tempo ouvido é estimado.** É `duração × playCount`; como a contagem exige metade da faixa, o
+  real fica entre metade disso e isso. Medir de verdade exigiria somar segundos a cada evento de
+  progresso e persistir esse total.
+- **O gráfico da semana conta em que dia cada faixa foi ouvida pela última vez**, não reproduções
+  por dia — o app guarda `lastPlayedAt`, não um histórico.
+
+Uma reprodução só é contada quando a faixa passa de **50%**. Contar no início encheria "Mais
+Tocadas" de música pulada no primeiro segundo. `lastPlayedAt`, em compensação, é gravado no início,
+que é quando ele de fato vira verdade.
+
+### Playlists inteligentes
+
+**Favoritas**, **Recentemente Adicionadas**, **Mais Tocadas** e **Nunca Tocadas** aparecem no topo
+da aba Playlists. São calculadas na hora, não salvas: manter "Mais Tocadas" em dia a cada
+reprodução daria mais trabalho que recalcular, e uma lista dessas desatualizada é pior que nenhuma.
+Ficam numa rota própria (`/smart/[id]`) e são **somente leitura** — quem define o conteúdo é a
+regra, não o usuário.
+
+---
+
+## Ajustes (issue #18)
+
+### Reprodução
+
+- **Fade entre faixas** — baixa o volume no fim da faixa e volta ao normal na seguinte. A issue
+  pedia *crossfade*, mas o Track Player mantém uma única instância de player: não há como sobrepor
+  duas faixas. O nome segue o que o código faz.
+- **Normalizar volume** — usa o **ReplayGain gravado no arquivo**. Não analisa o áudio; medir volume
+  de verdade exigiria decodificar cada faixa inteira, o que não cabe num scan no telefone. Arquivo
+  sem a tag fica em volume cheio.
+- **Pular silêncio não existe.** Detectar silêncio exige decodificar PCM, e o Track Player não expõe
+  nada para isso. Não há interruptor na tela: um que não faz nada seria pior que a ausência.
+
+Os três querem escrever no mesmo `setVolume`, então passam por um controlador único que os combina
+por multiplicação — sem isso, a última a escrever venceria.
+
+### Sleep timer
+
+5, 15, 30, 45 ou 60 minutos, ou o fim da faixa atual. O volume desce ao longo de 3s antes de pausar:
+cortar o som de uma vez acorda quem estava quase dormindo, que é justamente quem ligou o timer.
+Enquanto está ativo, aparece um selo no player no lugar da contagem da fila.
+
+O timer roda no **evento de progresso**, não num `setTimeout`: um timer de JS não é confiável com o
+app em segundo plano, que é exatamente onde ele precisa funcionar. E ele **não é persistido** — é um
+compromisso com o relógio, e restaurar um timer expirado pausaria a primeira faixa da sessão
+seguinte.
+
+### Manutenção da biblioteca
+
+Totais de faixas, espaço e duração; reescanear; limpar o cache de capas (com rescan logo em seguida,
+senão a biblioteca fica sem imagem nenhuma); e remover faixas cujo arquivo sumiu do disco.
+
+---
+
+## Importar músicas (issue #19)
+
+Botão em **Ajustes** e no estado vazio da Biblioteca, onde vem antes de "escanear" — numa biblioteca
+vazia, escanear não tem o que achar.
+
+Os arquivos escolhidos são **copiados** para `Documents/Music/`. Copiar não é uma escolha: o seletor
+devolve um arquivo temporário fora do sandbox, que o iOS descarta quando quiser, e uma biblioteca
+apontando para ele quebraria sozinha.
+
+A validação é **por extensão**, não pelo MIME que o seletor informa: o iOS entrega
+`application/octet-stream` para muita coisa vinda de nuvem, e confiar nisso rejeitaria arquivos
+válidos. Nome repetido não sobrescreve — vira `Faixa (2).mp3`. Só é descartado como duplicata quando
+nome **e** tamanho batem.
+
+---
+
+## Modo carro (issue #20)
+
+Tela de alto contraste para uso ao dirigir, acessível pelo ícone de carro no player ou por Ajustes.
+
+As cores fogem do design system de propósito: **preto e branco puros**, e não os tons do tema, que
+foram escolhidos para conforto em ambiente fechado e perdem legibilidade sob sol direto. Os botões
+partem de **88pt** — o dobro dos 44pt das HIG — porque o toque é feito sem olhar, com o carro
+andando. O estado pressionado é uma borda branca, não opacidade: um botão 30% mais apagado some no
+sol.
+
+`useKeepAwake` impede o bloqueio automático enquanto a tela está aberta; bloqueado, trocar de faixa
+exigiria desbloquear o telefone dirigindo. A rotação é liberada **só nesta tela** (um suporte de
+carro pode estar montado deitado) e volta a travar em retrato ao sair.
+
+As medidas ficam em `services/car-mode/layout.ts`, fora do componente, para poderem ser testadas sem
+montar a árvore — inclusive a regra de que a capa sai quando não há espaço, porque numa tela
+apertada é melhor ficar sem imagem do que com botões que exigem mira.
+
+---
+
+## Widget da tela de início (issue #23)
+
+Extensão WidgetKit em SwiftUI, nos tamanhos pequeno e médio. O código nativo vive em
+`targets/widget/` e entra no projeto Xcode pelo `@bacons/apple-targets`, então `ios/` continua
+gerado e fora do versionamento.
+
+O app e o widget são **processos diferentes** e conversam por um **App Group**:
+
+1. Na troca de faixa e no play/pause, o app grava título, artista e estado no `UserDefaults`
+   compartilhado e pede a recarga do widget.
+2. A capa não cabe nesse caminho — o widget não lê o sandbox do app —, então a imagem é **copiada**
+   para o container compartilhado, sempre com o mesmo nome.
+
+A publicação **não** acontece a cada atualização de progresso: o iOS dá um orçamento de recargas ao
+widget, e gastá-lo 1×/s sem mudar nada na tela o esgotaria.
+
+> Os botões **abrem o app** em vez de controlar a reprodução no lugar. O widget não alcança o
+> player; controle de verdade exigiria um `AppIntent` mais uma ponte para o processo do app, que só
+> funcionaria enquanto ele estivesse vivo. Cada botão é um deep link para
+> `connextmusic://widget/<ação>`, que executa e redireciona ao player.
 
 ---
 
