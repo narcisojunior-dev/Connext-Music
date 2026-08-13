@@ -104,9 +104,16 @@ STEM_A = stem_quad(TOP_L, HEAD_R, STEM_W)
 STEM_B = stem_quad(TOP_R, HEAD_L, STEM_W)
 
 
-def render(size, background=None):
-    """Devolve os bytes RGBA. `background` None = transparente."""
-    scale = CANVAS / size
+def render(size, background=None, inset=1.0):
+    """Devolve os bytes RGBA. `background` None = transparente.
+
+    `inset` encolhe a marca dentro da tela sem mudar o tamanho do arquivo. O
+    ícone adaptativo do Android recorta o primeiro plano em círculo, quadrado
+    ou squircle conforme o launcher, e só os 66% centrais são garantidos — uma
+    marca no tamanho cheio teria as pontas das hastes cortadas.
+    """
+    scale = CANVAS / size / inset
+    offset = CANVAS * (1 - 1 / inset) / 2 if inset != 1.0 else 0.0
     step = 1.0 / SUPERSAMPLE
     total = SUPERSAMPLE * SUPERSAMPLE
     rows = []
@@ -118,8 +125,8 @@ def render(size, background=None):
             hits = 0
             for sy in range(SUPERSAMPLE):
                 for sx in range(SUPERSAMPLE):
-                    x = (px + (sx + 0.5) * step) * scale
-                    y = (py + (sy + 0.5) * step) * scale
+                    x = (px + (sx + 0.5) * step) * scale + offset
+                    y = (py + (sy + 0.5) * step) * scale + offset
                     c = sample(x, y)
                     if c:
                         r += c[0]
@@ -170,13 +177,23 @@ BACKGROUND = (0x0A, 0x0E, 0x1A)  # o mesmo fundo do tema do app
 
 if __name__ == "__main__":
     saidas = [
-        ("assets/images/icon.png", 1024, BACKGROUND),
-        ("assets/images/splash-icon.png", 512, None),
-        ("store/logo/marca.png", 512, None),
-        ("store/logo/icone.png", 1024, BACKGROUND),
+        ("assets/images/icon.png", 1024, BACKGROUND, 1.0),
+        ("assets/images/splash-icon.png", 512, None, 1.0),
+        ("store/logo/marca.png", 512, None, 1.0),
+        ("store/logo/icone.png", 1024, BACKGROUND, 1.0),
+        # Android: primeiro plano recuado para caber na zona segura do recorte.
+        ("assets/images/android-icon-foreground.png", 1024, None, 0.62),
+        ("assets/images/android-icon-monochrome.png", 1024, None, 0.62),
     ]
 
     root = Path(__file__).resolve().parent.parent.parent
-    for rel, size, bg in saidas:
-        write_png(root / rel, render(size, bg), size)
-        print(f"{rel}  {size}×{size}  {'fundo do tema' if bg else 'transparente'}")
+    for rel, size, bg, inset in saidas:
+        write_png(root / rel, render(size, bg, inset), size)
+        marca = "fundo do tema" if bg else "transparente"
+        recuo = f", recuo {inset:.2f}" if inset != 1.0 else ""
+        print(f"{rel}  {size}×{size}  {marca}{recuo}")
+
+    # O fundo do adaptativo e uma cor chapada; nao precisa da marca.
+    fundo = [bytes(BACKGROUND + (255,)) * 1024 for _ in range(1024)]
+    write_png(root / "assets/images/android-icon-background.png", fundo, 1024)
+    print("assets/images/android-icon-background.png  1024×1024  cor chapada")

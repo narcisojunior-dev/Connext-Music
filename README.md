@@ -114,11 +114,46 @@ canto da tela abre o menu de desenvolvimento (ou `cmd+d` no simulador).
 
 ### Regenerando as pastas nativas
 
+`ios/` e `android/` são geradas a partir do `app.json` e **não são versionadas**:
+
 ```bash
-npm run prebuild     # expo prebuild --clean
+npx expo prebuild --clean            # as duas
+npx expo prebuild -p ios --clean     # só iOS
+npx expo prebuild -p android --clean # só Android
 ```
 
----
+### Android
+
+O app roda em Android, mas **três recursos são exclusivos do iOS** e simplesmente não aparecem lá:
+o widget da tela de início (WidgetKit), os atalhos do Siri (App Intents) e o Liquid Glass — este
+último cai para `BlurView` através do `GlassSurface`. O resto — reprodução em segundo plano, fila,
+playlists, busca, pastas, estatísticas — é comum às duas plataformas.
+
+Para compilar é preciso um JDK e o SDK do Android. Se você tem o Android Studio instalado, o JDK
+vem com ele:
+
+```bash
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+npx expo run:android          # compila e instala num emulador ou aparelho
+cd android && ./gradlew assembleDebug   # só o APK
+```
+
+O ícone adaptativo sai do mesmo `store/logo/render.py` que o do iOS, com o primeiro plano recuado
+para 62% — o Android recorta em círculo, quadrado ou squircle conforme o launcher, e só os 66%
+centrais são garantidos.
+
+> ⚠️ **O Android exige um patch no `react-native-track-player`.** A versão 4.1.2 chama
+> `Arguments.fromBundle(track.originalItem)`, mas `originalItem` é `Bundle?` no RN 0.86 e o Kotlin
+> recusa — o build quebra em `compileDebugKotlin`, dentro da biblioteca, não no nosso código. O
+> patch de duas linhas está em `patches/` e é reaplicado sozinho pelo `postinstall`
+> (`patch-package`).
+>
+> Isto é o risco de manutenção do RNTP, registrado desde a issue #8, se manifestando. A saída
+> definitiva é a v5 da biblioteca (ainda em alpha) ou migrar para o `expo-audio`, que é de primeira
+> parte.
 
 ### Rodando no iPhone (aparelho real)
 
@@ -879,7 +914,7 @@ sozinho — o parser devolve artista nulo em vez de chutar.
 ## Qualidade de código
 
 ```bash
-npm test              # 82 asserções sobre a lógica pura (runner nativo do Node)
+npm test              # 281 testes da lógica pura (runner nativo do Node)
 npm run lint          # ESLint (eslint-config-expo + prettier)
 npm run lint:fix
 npm run format        # Prettier em todo o projeto
@@ -903,7 +938,7 @@ problemas de formatação aparecem como erros de lint. As pastas geradas (`ios/`
 ## Testes (issues #25 e #26)
 
 ```bash
-npm test              # 229 testes
+npm test              # 281 testes
 npm run test:coverage # com relatório de cobertura
 npm run test:watch
 ```
@@ -921,8 +956,7 @@ Cobertura nas camadas que a issue #26 exige acima de 70%:
 | `utils/`  | 90–100% |
 | Geral     | 86,7%   |
 
-**Não foi adicionado Jest + React Native Testing Library**, apesar de a issue pedir. A suíte atual
-já cobre stores, utilitários, parsers e os fluxos de integração; um segundo runner traria um preset
+**Não foi adicionado Jest + React Native Testing Library**, apesar de a issue pedir. A suíte atual já cobre stores, utilitários, parsers e os fluxos de integração; um segundo runner traria um preset
 pesado e mais um conjunto de dependências para cobrir o que falta — renderização de componente.
 Vale reavaliar se testes de componente virarem prioridade; o que eles pegariam de fato está
 registrado na issue.
@@ -934,6 +968,9 @@ guardam é a _ausência_ de algo, e não há comportamento para exercitar:
   issues sem fazer nada.
 - `haptics.test.ts` — componente chamando `expo-haptics` direto em vez de `utils/haptics`.
 - `file-scanner.test.ts` — cessão do event loop por contagem em vez de tempo (ver #25).
+- `import.test.ts` — UTI no lugar de MIME type nos tipos declarados ao seletor de arquivos. Passar
+  UTIs fazia o `expo-document-picker` abrir com a lista vazia, e **nenhuma música ficava
+  selecionável**.
 
 ### O que os testes não alcançam
 
