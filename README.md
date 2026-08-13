@@ -122,38 +122,54 @@ npx expo prebuild -p ios --clean     # só iOS
 npx expo prebuild -p android --clean # só Android
 ```
 
-### Android
+### Android — **não funciona hoje**
 
-O app roda em Android, mas **três recursos são exclusivos do iOS** e simplesmente não aparecem lá:
-o widget da tela de início (WidgetKit), os atalhos do Siri (App Intents) e o Liquid Glass — este
-último cai para `BlurView` através do `GlassSurface`. O resto — reprodução em segundo plano, fila,
-playlists, busca, pastas, estatísticas — é comum às duas plataformas.
+O projeto **compila** para Android, mas o app **quebra ao iniciar**. Testado no emulador (Pixel 9,
+Android 17):
 
-Para compilar é preciso um JDK e o SDK do Android. Se você tem o Android Studio instalado, o JDK
-vem com ele:
+```
+Exception in HostObject::get for prop 'TrackPlayerModule':
+Unable to parse @ReactMethod annotations from native module: TrackPlayerModule.
+Details: TurboModule system assumes returnType == void iff the method is synchronous.
+```
+
+A causa está no `react-native-track-player` 4.1.2, não no nosso código. **36 dos seus 39
+`@ReactMethod` são declarados como `fun x(...) = scope.launch { ... }`** — em Kotlin isso devolve
+`Job`, um tipo de retorno não-void num método assíncrono. A camada de interop de TurboModules do RN
+0.86 recusa o módulo inteiro por causa disso, e o app morre antes de pintar o primeiro quadro.
+
+Não dá para contornar desligando a nova arquitetura: o RN 0.86 é New-Architecture-only.
+
+> Este é o risco registrado desde a issue #8 se concretizando. No iOS a interop tolera o módulo
+> legado; no Android, não.
+
+**Caminhos possíveis**, nenhum trivial:
+
+| Saída                          | Custo                                                                                           |
+| ------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `react-native-track-player` v5 | Tem suporte a TurboModule, mas ainda está em alpha                                              |
+| Migrar para `expo-audio`       | Primeira parte, cobre background e lock screen no SDK 57 — mas reescreve a camada de reprodução |
+| Forkar a v4                    | Corrigir as 36 assinaturas. Um fork desse tamanho vira dívida permanente                        |
+
+Enquanto isso, o Android fica **sem suporte**. O que já está pronto para quando ele voltar: o
+projeto gera, o Gradle compila (com o patch em `patches/`), o ícone adaptativo sai da marca e três
+recursos continuarão sendo só do iOS — o widget, os atalhos do Siri e o Liquid Glass, que cai para
+`BlurView`.
+
+#### Como compilar, quando for a hora
 
 ```bash
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$PATH"
 
-npx expo run:android          # compila e instala num emulador ou aparelho
-cd android && ./gradlew assembleDebug   # só o APK
+npx expo prebuild -p android --clean
+cd android && ./gradlew assembleDebug
 ```
 
-O ícone adaptativo sai do mesmo `store/logo/render.py` que o do iOS, com o primeiro plano recuado
-para 62% — o Android recorta em círculo, quadrado ou squircle conforme o launcher, e só os 66%
-centrais são garantidos.
-
-> ⚠️ **O Android exige um patch no `react-native-track-player`.** A versão 4.1.2 chama
-> `Arguments.fromBundle(track.originalItem)`, mas `originalItem` é `Bundle?` no RN 0.86 e o Kotlin
-> recusa — o build quebra em `compileDebugKotlin`, dentro da biblioteca, não no nosso código. O
-> patch de duas linhas está em `patches/` e é reaplicado sozinho pelo `postinstall`
-> (`patch-package`).
->
-> Isto é o risco de manutenção do RNTP, registrado desde a issue #8, se manifestando. A saída
-> definitiva é a v5 da biblioteca (ainda em alpha) ou migrar para o `expo-audio`, que é de primeira
-> parte.
+> O `patches/react-native-track-player+4.1.2.patch` corrige um erro **de compilação** (`Bundle?`
+> passado onde se espera `Bundle`), reaplicado pelo `postinstall`. Ele faz o Gradle passar; **não**
+> resolve o problema de runtime acima.
 
 ### Rodando no iPhone (aparelho real)
 
@@ -507,7 +523,8 @@ pular. As já tocadas ficam esmaecidas, senão não dá para saber o que ainda v
 > `onPress`. Existe hoje um teste (`tests/dead-buttons.test.ts`) que varre as telas atrás de
 > `IconButton` sem ação e falha apontando arquivo, linha e rótulo.
 
-> ⚠️ **Risco de manutenção conhecido.** O RNTP 4.1.2 é um módulo da arquitetura legada (herda de
+> ⚠️ **Risco de manutenção conhecido — já concretizado no Android.** O módulo não carrega lá; ver
+> [Android](#android--não-funciona-hoje). O RNTP 4.1.2 é um módulo da arquitetura legada (herda de
 > `RCTEventEmitter`, sem `codegenConfig`) e só funciona no RN 0.86 através da camada de interop. O
 > React Native já anunciou a remoção gradual do código legado, e a v5 do RNTP ainda está em alpha.
 > A alternativa de primeira parte é o `expo-audio`, que no SDK 57 cobre background playback e
