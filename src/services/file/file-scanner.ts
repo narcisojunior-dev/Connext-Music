@@ -15,8 +15,22 @@ export { SUPPORTED_EXTENSIONS };
  */
 export const MIN_FILE_SIZE = 1024;
 
-/** Quantos arquivos processar antes de devolver o controle ao event loop. */
-const YIELD_EVERY = 25;
+/**
+ * Quanto tempo o scan pode segurar o event loop antes de ceder, em ms.
+ *
+ * O criterio e tempo, e nao um numero fixo de arquivos, porque o custo por
+ * arquivo varia em duas ordens de grandeza: ler as tags de um MP3 e caro,
+ * reaproveitar uma faixa ja conhecida e quase de graca. Cedendo a cada 25
+ * arquivos, um scan incremental de 1120 faixas pagava 44 idas ao event loop
+ * para nao ler nada — 1702ms de trabalho quase todo em espera.
+ *
+ * 32ms sao ~2 quadros: a barra de progresso ainda atualiza umas 30x por
+ * segundo, o que e mais que suficiente para parecer continua. Numeros menores
+ * pioram o scan completo em vez de melhorar: medido no simulador com 1120
+ * arquivos, 12ms levava o scan completo de 2129ms para 2568ms, porque com
+ * leitura de tags o orcamento estoura a cada poucos arquivos.
+ */
+const YIELD_BUDGET_MS = 32;
 
 export type ScanProgressCallback = (current: number, total: number, fileName: string) => void;
 
@@ -223,9 +237,9 @@ function carryUserData(track: Track, previous: Track | undefined): Track {
  * A funcao e assincrona apesar de a API do `expo-file-system` ser sincrona.
  * Isso e deliberado: `list()` e `.size` bloqueiam a thread de JS, entao um scan
  * de mil arquivos congelaria a interface do inicio ao fim e a barra de
- * progresso so apareceria preenchida no ultimo frame. Cedendo o event loop a
- * cada {@link YIELD_EVERY} arquivos, o React consegue pintar os quadros
- * intermediarios e o progresso fica visivel.
+ * progresso so apareceria preenchida no ultimo frame. Cedendo o event loop
+ * sempre que segura por mais de {@link YIELD_BUDGET_MS}, o React consegue
+ * pintar os quadros intermediarios e o progresso fica visivel.
  */
 export async function scanMusicLibrary({
   onProgress,
@@ -251,6 +265,8 @@ export async function scanMusicLibrary({
   const documents = new Directory(Paths.document);
   const files = collectAudioFiles(documents);
   const total = files.length;
+
+  let lastYield = Date.now();
 
   for (let i = 0; i < total; i++) {
     const file = files[i];
@@ -281,8 +297,9 @@ export async function scanMusicLibrary({
 
     onProgress?.(i + 1, total, file.name);
 
-    if ((i + 1) % YIELD_EVERY === 0) {
+    if (Date.now() - lastYield >= YIELD_BUDGET_MS) {
       await yieldToEventLoop();
+      lastYield = Date.now();
     }
   }
 

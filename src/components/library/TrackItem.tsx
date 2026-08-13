@@ -73,6 +73,9 @@ export function TrackItem({ track, isActive = false, onPress, onLongPress }: Tra
           style={[styles.artwork, { borderRadius: theme.radius.card }]}
           contentFit="cover"
           recyclingKey={track.id}
+          // Capas nao mudam: manter em memoria e em disco evita reler o
+          // arquivo a cada vez que a linha volta para a viewport.
+          cachePolicy="memory-disk"
         />
       ) : (
         <View

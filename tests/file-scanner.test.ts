@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
@@ -112,5 +114,26 @@ describe('scanner de arquivos', () => {
 
   test('MIN_FILE_SIZE e 1KB', () => {
     assert.equal(MIN_FILE_SIZE, 1024);
+  });
+});
+
+describe('orcamento de cessao do event loop', () => {
+  test('cede por tempo, e nao por contagem de arquivos', () => {
+    // A regressao que este teste guarda: cedendo a cada N arquivos, um scan
+    // incremental de 1120 faixas pagava 44 idas ao event loop para nao ler
+    // nenhuma tag — medido em 1702ms contra 965ms cedendo por tempo.
+    const source = readFileSync(
+      join(import.meta.dirname, '..', 'src', 'services', 'file', 'file-scanner.ts'),
+      'utf8',
+    );
+
+    assert.ok(
+      /YIELD_BUDGET_MS/.test(source),
+      'o scanner deveria ceder o event loop por orçamento de tempo',
+    );
+    assert.ok(
+      !/%\s*YIELD_EVERY/.test(source),
+      'sobrou cessão por contagem de arquivos, que é o que causava a lentidão',
+    );
   });
 });

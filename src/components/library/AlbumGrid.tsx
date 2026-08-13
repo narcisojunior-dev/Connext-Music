@@ -57,6 +57,9 @@ function AlbumCard({ album, size, onPress }: { album: Album; size: number; onPre
           style={[styles.artwork, { width: size, height: size, borderRadius: theme.radius.card }]}
           contentFit="cover"
           recyclingKey={album.id}
+          // Capas nao mudam: manter em memoria e em disco evita reler o
+          // arquivo a cada vez que a linha volta para a viewport.
+          cachePolicy="memory-disk"
         />
       ) : (
         <View

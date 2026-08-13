@@ -91,6 +91,9 @@ export function NowPlayingArtwork({
           style={[styles.fill, { borderRadius: theme.radius.modal }]}
           contentFit="cover"
           recyclingKey={seed}
+          // Capas nao mudam: manter em memoria e em disco evita reler o
+          // arquivo a cada vez que a linha volta para a viewport.
+          cachePolicy="memory-disk"
           transition={200}
         />
       ) : (
