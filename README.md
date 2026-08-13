@@ -14,7 +14,7 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-**21 de 28 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 em andamento.
+**22 de 28 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 e v0.8 em andamento.
 
 | Issue                                                               | Escopo                               | Milestone | Status |
 | ------------------------------------------------------------------- | ------------------------------------ | --------- | ------ |
@@ -40,6 +40,7 @@ background playback, lock screen e Control Center.
 | [#20](https://github.com/narcisojunior-dev/Connext-Music/issues/20) | Modo carro                           | v0.7      | ✅     |
 | [#21](https://github.com/narcisojunior-dev/Connext-Music/issues/21) | Equalizador básico                   | v0.7      | 🚫\*\*\* |
 | [#22](https://github.com/narcisojunior-dev/Connext-Music/issues/22) | Compartilhamento de playlists        | v0.7      | ✅     |
+| [#23](https://github.com/narcisojunior-dev/Connext-Music/issues/23) | Widget iOS (tela de início)          | v0.8      | ✅\*\*\*\* |
 | [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ⏳     |
 
 \* A #16 está fechada exceto por um item: o gradiente do player **não** usa a cor dominante da artwork, e sim uma cor derivada do hash do id da faixa. Amostrar a imagem exigiria decodificar os pixels em JS ou adicionar outro módulo nativo — ver o commit da #16.
@@ -48,9 +49,13 @@ background playback, lock screen e Control Center.
 
 \*\*\* A #21 (equalizador) **não é viável** com a stack atual: o `react-native-track-player` não expõe nenhum método de efeito, e o motor por baixo (`SwiftAudioEx` sobre `AVPlayer`) não tem `AVAudioUnitEQ` nem tap de áudio. Aplicar o efeito exigiria forkar o motor ou substituir o RNTP por um módulo nativo sobre `AVAudioEngine`. A pesquisa completa está no comentário da issue.
 
+\*\*\*\* O widget da #23 **mostra** a faixa atual e atualiza na troca, mas os botões **abrem o app** em vez de controlar a reprodução no lugar. O widget roda em outro processo e não alcança o player; controle de verdade exigiria um `AppIntent` mais uma ponte para o processo do app, que só funcionaria enquanto ele estivesse vivo.
+
 > ⚠️ As issues #19 e #20 acrescentaram módulos nativos (**`expo-document-picker`**, **`expo-keep-awake`**,
 > **`expo-screen-orientation`**) e a #20 mudou a orientação suportada no `app.json`. Um dev client compilado
 > antes delas não tem esses módulos. Rode `npx expo run:ios` uma vez para recompilar.
+
+> ⚠️ A #23 acrescentou uma **extensão nativa** (o widget) e um **App Group**. Isso não é fast refresh: exige `npx expo prebuild -p ios --clean` seguido de `npx expo run:ios`. O App Group também precisa existir na sua conta Apple para instalar em aparelho — no simulador funciona sem isso.
 
 O fluxo principal está completo: o app escaneia a pasta `Documents/` (ou importa pelo seletor do
 iOS), lê as tags, persiste a biblioteca, reproduz com fila, shuffle e repeat, busca, organiza em
@@ -154,6 +159,7 @@ reproduz e não há como automatizar o toque:
 | #19     | O seletor de arquivos do iOS: filtro de tipos, seleção múltipla e cópia vinda de iCloud/Drive     |
 | #20     | Legibilidade do modo carro a 1 m, rotação para paisagem e o auto-lock realmente desativado        |
 | #22     | A folha de compartilhamento e o seletor de arquivos do iOS ao exportar/importar playlists         |
+| #23     | O widget na tela de início: aparece na galeria, mostra a faixa e atualiza ao trocar de música     |
 
 > A correção do commit `6e1e244` foi motivada por um destes: opções de sessão de áudio inválidas
 > para a categoria `playback` impediam o Now Playing de aparecer. O simulador aceitava a

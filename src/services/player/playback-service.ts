@@ -9,6 +9,7 @@ import TrackPlayer, {
 import { JUMP_SECONDS } from '@/services/player/constants';
 import { createPlayTracker } from '@/services/player/play-tracking';
 import { createVolumeController } from '@/services/player/volume-controller';
+import { publishNowPlaying } from '@/services/widget/now-playing-widget';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlayerStore } from '@/stores/player-store';
@@ -130,7 +131,11 @@ export async function playbackService(): Promise<void> {
 
   // O estado real do audio manda: a UI reflete o player, nunca o contrario.
   TrackPlayer.addEventListener(Event.PlaybackState, ({ state }) => {
-    usePlayerStore.getState().setIsPlaying(state === 'playing');
+    const isPlaying = state === 'playing';
+    usePlayerStore.getState().setIsPlaying(isPlaying);
+    // Play/pause muda o icone do widget; e o unico outro momento, alem da troca
+    // de faixa, em que vale gastar uma recarga.
+    publishNowPlaying(usePlayerStore.getState().currentTrack, isPlaying);
   });
 
   TrackPlayer.addEventListener(Event.PlaybackProgressUpdated, ({ position, duration }) => {
@@ -166,6 +171,8 @@ export async function playbackService(): Promise<void> {
 
     const track = usePlayerStore.getState().queue[index];
     if (track) useLibraryStore.getState().registerPlayStart(track.id);
+
+    if (track) publishNowPlaying(track, usePlayerStore.getState().isPlaying);
 
     // A faixa nova comeca em volume cheio, desfazendo o fade da anterior.
     volume.reset();
