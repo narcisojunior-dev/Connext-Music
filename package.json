@@ -64,7 +64,9 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tests",
     "prebuild": "expo prebuild --clean",
-    "test": "node --import ./tests/loader.mjs --test \"tests/**/*.test.ts\""
+    "test": "node --import ./tests/loader.mjs --test \"tests/**/*.test.ts\"",
+    "test:coverage": "node --import ./tests/loader.mjs --test --experimental-test-coverage \"tests/**/*.test.ts\"",
+    "test:watch": "node --import ./tests/loader.mjs --test --watch \"tests/**/*.test.ts\""
   },
   "private": true
 }

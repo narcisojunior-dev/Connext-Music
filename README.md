@@ -14,7 +14,7 @@ background playback, lock screen e Control Center.
 
 ## Estado atual
 
-**23 de 28 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 e v0.8 em andamento.
+**25 de 28 issues concluídas.** Milestones v0.1 a v0.6 completos; v0.7 a v0.9 em andamento.
 
 | Issue                                                               | Escopo                               | Milestone | Status       |
 | ------------------------------------------------------------------- | ------------------------------------ | --------- | ------------ |
@@ -42,8 +42,8 @@ background playback, lock screen e Control Center.
 | [#22](https://github.com/narcisojunior-dev/Connext-Music/issues/22) | Compartilhamento de playlists        | v0.7      | ✅           |
 | [#23](https://github.com/narcisojunior-dev/Connext-Music/issues/23) | Widget iOS (tela de início)          | v0.8      | ✅\*\*\*\*   |
 | [#24](https://github.com/narcisojunior-dev/Connext-Music/issues/24) | Atalhos Siri                         | v0.8      | ✅\*\*\*\*\* |
-| [#25](https://github.com/narcisojunior-dev/Connext-Music/issues/25) | Otimização de performance            | v0.9      | ⏳           |
-| [#26](https://github.com/narcisojunior-dev/Connext-Music/issues/26) | Testes automatizados                 | v0.9      | ⏳           |
+| [#25](https://github.com/narcisojunior-dev/Connext-Music/issues/25) | Otimização de performance            | v0.9      | ✅           |
+| [#26](https://github.com/narcisojunior-dev/Connext-Music/issues/26) | Testes automatizados                 | v0.9      | ✅           |
 | [#27](https://github.com/narcisojunior-dev/Connext-Music/issues/27) | Preparação para App Store            | v1.0      | ⏳           |
 | [#28](https://github.com/narcisojunior-dev/Connext-Music/issues/28) | Biblioteca por pastas                | v0.7      | ⏳           |
 
@@ -815,6 +815,63 @@ caso exercita. Componentes React ficam de fora: precisam de RNTL, que chega na i
 O ESLint roda com o flat config (`eslint.config.js`) e o Prettier integrado como regra, então
 problemas de formatação aparecem como erros de lint. As pastas geradas (`ios/`, `android/`,
 `dist/`, `graphify-out/`) ficam fora dos dois.
+
+---
+
+## Testes (issues #25 e #26)
+
+```bash
+npm test              # 229 testes
+npm run test:coverage # com relatório de cobertura
+npm run test:watch
+```
+
+A suíte roda no **runner nativo do Node**, sem Jest e sem nenhuma dependência de runtime. Um
+`tests/loader.mjs` resolve os aliases `@/` e substitui os módulos nativos (`expo-file-system`,
+AsyncStorage, `expo-document-picker`, `@bacons/apple-targets`) por stubs em memória. A suíte inteira
+leva menos de um segundo.
+
+Cobertura nas camadas que a issue #26 exige acima de 70%:
+
+| Camada    | Linhas  |
+| --------- | ------- |
+| `stores/` | 93–100% |
+| `utils/`  | 90–100% |
+| Geral     | 86,7%   |
+
+**Não foi adicionado Jest + React Native Testing Library**, apesar de a issue pedir. A suíte atual
+já cobre stores, utilitários, parsers e os fluxos de integração; um segundo runner traria um preset
+pesado e mais um conjunto de dependências para cobrir o que falta — renderização de componente.
+Vale reavaliar se testes de componente virarem prioridade; o que eles pegariam de fato está
+registrado na issue.
+
+Três testes fogem do formato e leem o **código-fonte** em vez de executá-lo, porque o defeito que
+guardam é a _ausência_ de algo, e não há comportamento para exercitar:
+
+- `dead-buttons.test.ts` — `IconButton` sem `onPress`. Foi assim que o botão da fila passou nove
+  issues sem fazer nada.
+- `haptics.test.ts` — componente chamando `expo-haptics` direto em vez de `utils/haptics`.
+- `file-scanner.test.ts` — cessão do event loop por contagem em vez de tempo (ver #25).
+
+### O que os testes não alcançam
+
+Áudio, toque, sensores e o sistema operacional. O roteiro está em
+[TESTES-APARELHO.md](TESTES-APARELHO.md), com os blocos que precisam de um iPhone real e o registro
+de execução.
+
+### Desempenho medido
+
+No simulador, com **1120 faixas**:
+
+| Operação                            | Tempo  |
+| ----------------------------------- | ------ |
+| Hidratar a biblioteca salva         | 78ms   |
+| Scan completo (lê todas as tags)    | 2133ms |
+| Scan incremental (reaproveita tudo) | 965ms  |
+
+O scan incremental custava **1702ms** antes da #25: o scanner cedia o event loop a cada 25
+arquivos, pagando 44 idas ao `setTimeout` mesmo sem ler nenhuma tag. Passou a ceder por orçamento
+de tempo (32ms).
 
 ---
 
