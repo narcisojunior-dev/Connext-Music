@@ -12,6 +12,11 @@ import {
   type RawPicture,
 } from '@/services/file/tag-parsers';
 
+/** Preenchimento quando a tag nao traz o campo. Exportado para o scanner poder
+ * reconhecer que o valor e um preenchimento, e nao algo que o usuario escreveu. */
+export const ARTIST_UNKNOWN = 'Artista Desconhecido';
+export const ALBUM_UNKNOWN = 'Álbum Desconhecido';
+
 /**
  * Metadados prontos para virar uma `Track`, ja com os fallbacks aplicados.
  *
@@ -174,8 +179,8 @@ export function extractMetadata(
 
   return {
     title: tags.title || fallbackTitle,
-    artist: tags.artist || 'Artista Desconhecido',
-    album: tags.album || 'Álbum Desconhecido',
+    artist: tags.artist || ARTIST_UNKNOWN,
+    album: tags.album || ALBUM_UNKNOWN,
     genre: tags.genre || '',
     year: tags.year,
     trackNumber: tags.trackNumber,

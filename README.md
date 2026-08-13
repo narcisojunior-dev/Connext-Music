@@ -836,6 +836,27 @@ armazenamento apertar sem o usuário perder nada.
 
 ---
 
+#### Quando a tag não presta
+
+Nem todo arquivo traz metadados úteis. O caso que forçou este tratamento: um álbum baixado solto,
+**sem ID3v2**, com um **ID3v1 preenchido automaticamente** — títulos `music 1`, `music 2`, `music 3`
+e artista vazio — enquanto o nome do arquivo dizia
+`01 - EU IA PARAR - Anderson Porto.mp3`. A tag de lixo vencia, e a biblioteca ficava cheia de
+"music 8".
+
+A regra hoje, em `file-name-parser.ts`:
+
+1. **ID3v2 sempre vence.** Quem preencheu quis aquilo.
+2. Um ID3v1 **com artista** também vence — é uma fonte legítima.
+3. Um ID3v1 **sem artista e com título que parece gerado por máquina** (`music 8`, `track 3`,
+   `untitled`, só dígitos) é descartado em favor do nome do arquivo. Junto com ele vai o número da
+   faixa, que nesses arquivos vinha como 1 em todas.
+
+O nome é decomposto em número, e segmentos separados por hífen. `01 - A - B` não diz sozinho se A é
+o título ou o artista — há coleções nas duas convenções. **Quem responde é a pasta: o artista é o
+segmento que se repete** entre as faixas vizinhas. Sem repetição — uma coletânea, ou um arquivo
+sozinho — o parser devolve artista nulo em vez de chutar.
+
 ## Qualidade de código
 
 ```bash
