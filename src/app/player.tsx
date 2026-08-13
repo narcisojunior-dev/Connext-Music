@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NowPlayingArtwork, trackColor } from '@/components/player/NowPlayingArtwork';
 import { PlayerControls } from '@/components/player/PlayerControls';
 import { ProgressSlider } from '@/components/player/ProgressSlider';
+import { QueueSheet } from '@/components/player/QueueSheet';
 import { sleepTimerLabel } from '@/components/settings/SleepTimerModal';
 import { FavoriteButton } from '@/components/track/FavoriteButton';
 import { IconButton } from '@/components/ui/icon-button';
@@ -69,6 +70,8 @@ export default function PlayerScreen() {
   const isFavorite = useLibraryStore(
     (s) => s.tracks.find((t) => t.id === currentTrack?.id)?.isFavorite ?? false,
   );
+
+  const [queueOpen, setQueueOpen] = useState(false);
 
   const handleSeek = useCallback((seconds: number) => void seekTo(seconds), []);
 
@@ -184,18 +187,23 @@ export default function PlayerScreen() {
               onToggle={() => currentTrack && toggleFavorite(currentTrack.id)}
               size={20}
             />
-            <IconButton name="list" accessibilityLabel="Fila de reprodução" size="sm" />
+            <IconButton
+              name="list"
+              accessibilityLabel="Fila de reprodução"
+              size="sm"
+              onPress={() => setQueueOpen(true)}
+            />
             <IconButton
               name="car-sport"
               accessibilityLabel="Modo carro"
               size="sm"
               onPress={() => router.push('/car-mode')}
             />
-            <IconButton name="volume-medium" accessibilityLabel="Volume" size="sm" />
-            <IconButton name="radio" accessibilityLabel="AirPlay" size="sm" />
           </View>
         </View>
       </SafeAreaView>
+
+      <QueueSheet visible={queueOpen} onClose={() => setQueueOpen(false)} />
     </View>
   );
 }
