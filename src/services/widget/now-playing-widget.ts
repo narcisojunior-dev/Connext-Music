@@ -2,10 +2,8 @@ import { ExtensionStorage } from '@bacons/apple-targets';
 import { Directory, File, Paths } from 'expo-file-system';
 import { Platform } from 'react-native';
 
+import { APP_GROUP } from '@/services/app-group';
 import type { Track } from '@/types/track';
-
-/** Precisa bater com `app.json` e com `targets/widget/NowPlayingEntry.swift`. */
-export const APP_GROUP = 'group.com.narcisojunior.connextmusic';
 
 /** Chave lida pelo widget. */
 const NOW_PLAYING_KEY = 'nowPlaying';
@@ -103,3 +101,5 @@ export function publishNowPlaying(track: Track | null, isPlaying: boolean): void
     console.warn('[widget] não foi possível publicar a faixa atual:', error);
   }
 }
+
+export { APP_GROUP };

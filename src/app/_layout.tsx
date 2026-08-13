@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/components/theme/theme-provider';
 import { useLibraryStore } from '@/stores/library-store';
 import { usePlaylistStore } from '@/stores/playlist-store';
 import { useSettingsStore } from '@/stores/settings-store';
+import { useSiriCommands, useSiriPlaylistSync } from '@/hooks/use-siri-commands';
 import { theme } from '@theme/index';
 
 SplashScreen.preventAutoHideAsync();
@@ -38,6 +39,11 @@ export default function RootLayout() {
   const hydrate = useLibraryStore((s) => s.hydrate);
   const hydratePlaylists = usePlaylistStore((s) => s.hydrate);
   const hydrateSettings = useSettingsStore((s) => s.hydrate);
+
+  // Atalhos do Siri: um publica as playlists para o Siri poder oferece-las por
+  // nome, o outro executa o comando que o atalho deixou no App Group.
+  useSiriPlaylistSync();
+  useSiriCommands();
 
   // Le a biblioteca salva assim que o app abre, para as telas ja nascerem com
   // as faixas em vez de esperar um scan.
