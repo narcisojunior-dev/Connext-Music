@@ -32,7 +32,7 @@ nenhuma — o comportamento de fallback só aparece com ela.
 | --- | --------------------------------------- | --------------------------------------------------- | --- |
 | 1.1 | Tocar uma faixa e bloquear a tela       | Título, artista e capa aparecem na tela de bloqueio |     |
 | 1.2 | Play/pause pela tela de bloqueio        | Responde imediatamente                              |     |
-| 1.3 | ±10s pela tela de bloqueio              | Salta 10 segundos, não troca de faixa               |     |
+| 1.3 | Botões de faixa pela tela de bloqueio   | Troca de música; **não** aparecem botões de ±10s    |     |
 | 1.4 | Arrastar a barra na tela de bloqueio    | A posição muda de verdade                           |     |
 | 1.5 | Sair do app pela tela de início         | A música continua                                   |     |
 | 1.6 | Deixar a faixa acabar com o app fechado | A próxima começa sozinha                            |     |
@@ -94,6 +94,7 @@ Por intenção, não por intensidade (ver `utils/haptics.ts`):
 | 6.5 | Apagar um arquivo pelo app Arquivos → "Excluir não encontradas" | Remove só as que sumiram                               |     |
 | 6.6 | Long-press → "Remover da biblioteca" → reescanear               | A faixa **volta**                                      |     |
 | 6.7 | Long-press → "Apagar do aparelho" → reescanear                  | A faixa **não volta**; o arquivo sumiu do app Arquivos |     |
+| 6.8 | Aba Pastas → "Importar pasta" com a biblioteca já cheia         | O botão está no topo da aba; nomear a pasta a separa   |     |
 | 6.8 | Apagar a faixa que está tocando                                 | A reprodução para, sem travar                          |     |
 
 ## 7. Compartilhar playlists

@@ -89,6 +89,11 @@ Este projeto usa um **development build** (`expo-dev-client`), não o Expo Go. I
 porque os módulos nativos das próximas issues (Track Player, file system, widgets) não existem no
 Expo Go.
 
+> O botão flutuante do dev menu (a bolinha de ferramentas do `expo-dev-client`) vem desligado:
+> `ios.infoPlist.EXDevMenuShowFloatingActionButton: false` no `app.json`. A chave só define o
+> **padrão** — se você já alternou o "Tools button" dentro do dev menu, a preferência salva vence, e
+> é lá que se desliga. Em build de produção o dev client não é incluído e a bolinha não existe.
+
 ### Pré-requisitos
 
 - Node.js e npm
@@ -207,27 +212,43 @@ O iPhone precisa estar **na mesma rede Wi-Fi** que o Mac — o dev client busca 
 > Com conta gratuita, o perfil de provisionamento **expira em 7 dias** e o app para de abrir até ser
 > reinstalado. Com o Apple Developer Program, dura um ano.
 
+#### Versão final no aparelho (sem Metro, sem dev client)
+
+O `run:ios` padrão instala um build de **debug**: ele precisa do bundler na rede para abrir. Para o
+app de verdade, que roda sozinho:
+
+```bash
+npx expo run:ios --device --configuration Release
+```
+
+Em Release o bundle JavaScript é **embutido no binário**, o `expo-dev-launcher` não entra em ação e
+o menu de desenvolvimento some. É este o app que se leva na rua.
+
+Com conta gratuita ele ainda expira em 7 dias — reinstalar é rodar o mesmo comando de novo. As rotas
+sem cabo (TestFlight, ad-hoc por link) exigem o Apple Developer Program; os comandos estão em
+[LOJA.md](./LOJA.md).
+
 #### O que só o aparelho verifica
 
 Estes critérios de aceite estão implementados mas **não foram observados** — o simulador não os
 reproduz e não há como automatizar o toque:
 
-| Origem   | O que testar                                                                                          |
-| -------- | ----------------------------------------------------------------------------------------------------- |
-| #8, #11  | Controles na tela de bloqueio e na Central de Controle: título, artista, capa, play/pause, ±10s, seek |
-| #8       | Controles de fones físicos e AirPods (play/pause, próxima)                                            |
-| #11      | Arrastar o slider de progresso; retorno háptico dos botões                                            |
-| #10      | Scroll a 60fps com mais de 100 faixas                                                                 |
-| #12      | Gestos do mini player: toque abre o player, arrasto horizontal pula faixa, arrasto para baixo encerra |
-| #14, #15 | Arrastar para reordenar playlist; menu de long-press; compartilhar e remover faixa                    |
-| #16      | Escala do play/pause, pulso e crossfade da capa, marquee, subida do mini player — e se rodam a 60fps  |
-| #16      | Intensidade do háptico por intenção: leve no transporte, média ao favoritar, forte no long-press      |
-| #18      | Fade no fim da faixa, normalização por ReplayGain e o fade-out do sleep timer — tudo isso é ouvido    |
-| #19      | O seletor de arquivos do iOS: filtro de tipos, seleção múltipla e cópia vinda de iCloud/Drive         |
-| #20      | Legibilidade do modo carro a 1 m, rotação para paisagem e o auto-lock realmente desativado            |
-| #22      | A folha de compartilhamento e o seletor de arquivos do iOS ao exportar/importar playlists             |
-| #23      | O widget na tela de início: aparece na galeria, mostra a faixa e atualiza ao trocar de música         |
-| #24      | Os atalhos no app Atalhos e por voz: "tocar aleatória", "pausar", "tocar playlist X"                  |
+| Origem   | O que testar                                                                                                            |
+| -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| #8, #11  | Controles na tela de bloqueio e na Central de Controle: título, artista, capa, play/pause, faixa anterior/próxima, seek |
+| #8       | Controles de fones físicos e AirPods (play/pause, próxima)                                                              |
+| #11      | Arrastar o slider de progresso; retorno háptico dos botões                                                              |
+| #10      | Scroll a 60fps com mais de 100 faixas                                                                                   |
+| #12      | Gestos do mini player: toque abre o player, arrasto horizontal pula faixa, arrasto para baixo encerra                   |
+| #14, #15 | Arrastar para reordenar playlist; menu de long-press; compartilhar e remover faixa                                      |
+| #16      | Escala do play/pause, pulso e crossfade da capa, marquee, subida do mini player — e se rodam a 60fps                    |
+| #16      | Intensidade do háptico por intenção: leve no transporte, média ao favoritar, forte no long-press                        |
+| #18      | Fade no fim da faixa, normalização por ReplayGain e o fade-out do sleep timer — tudo isso é ouvido                      |
+| #19      | O seletor de arquivos do iOS: filtro de tipos, seleção múltipla e cópia vinda de iCloud/Drive                           |
+| #20      | Legibilidade do modo carro a 1 m, rotação para paisagem e o auto-lock realmente desativado                              |
+| #22      | A folha de compartilhamento e o seletor de arquivos do iOS ao exportar/importar playlists                               |
+| #23      | O widget na tela de início: aparece na galeria, mostra a faixa e atualiza ao trocar de música                           |
+| #24      | Os atalhos no app Atalhos e por voz: "tocar aleatória", "pausar", "tocar playlist X"                                    |
 
 > A correção do commit `6e1e244` foi motivada por um destes: opções de sessão de áudio inválidas
 > para a categoria `playback` impediam o Now Playing de aparecer. O simulador aceitava a
@@ -446,9 +467,10 @@ coberto por blur — o glassmorphism do PRD.
 
 **Saltos de ±10s** (`skipForward`/`skipBackward`) com os limites tratados: retroceder antes do
 início para em 0s, e avançar além do fim passa para a próxima faixa em vez de buscar uma posição
-que não existe. Os mesmos saltos aparecem na tela de bloqueio e no Control Center via
-`Capability.JumpForward`/`JumpBackward`, com o intervalo declarado em `updateOptions` — sem isso o
-iOS mostraria o padrão de 15s, divergindo do que o app faz.
+que não existe. Os saltos vivem **só dentro do app**: na tela de bloqueio e no Control Center o que
+aparece é faixa anterior/próxima. `Capability.JumpForward`/`JumpBackward` ficaram de fora de
+propósito — com as duas famílias declaradas, o iOS escolhe os botões de salto e esconde os de faixa,
+e no bloqueio o que se quer é trocar de música.
 
 > Os ícones de ±10s são deliberadamente diferentes dos de faixa anterior/próxima. Confundir os dois
 > é frustrante: um perde a posição da música, o outro não.
@@ -689,9 +711,13 @@ A árvore é derivada em memória, como as playlists inteligentes. Duas decisõe
 
 Faixas na raiz de `Documents/` ficam num nó próprio, sem pasta inventada.
 
-Na importação (issue #19), Ajustes pergunta um nome de pasta antes de abrir o seletor. O seletor do
+Na importação (issue #19), pergunta-se um nome de pasta antes de abrir o seletor. O seletor do
 iOS não informa de que pasta cada arquivo veio, então reconstruir a origem é impossível — nomear o
 lote é o mais perto que dá para chegar.
+
+O botão **Importar pasta** fica no topo da própria aba Pastas. Antes ele só existia no estado vazio
+da Biblioteca — que some para sempre depois da primeira importação — e em Ajustes, onde ninguém
+procura na hora de trazer a segunda pasta.
 
 ---
 
@@ -758,8 +784,9 @@ senão a biblioteca fica sem imagem nenhuma); e remover faixas cujo arquivo sumi
 
 ## Importar músicas (issue #19)
 
-Botão em **Ajustes** e no estado vazio da Biblioteca, onde vem antes de "escanear" — numa biblioteca
-vazia, escanear não tem o que achar.
+Botão no topo da aba **Pastas**, em **Ajustes** e no estado vazio da Biblioteca, onde vem antes de
+"escanear" — numa biblioteca vazia, escanear não tem o que achar. Os três passam pelo mesmo
+`importWithPrompt` do hook `useMusicImport`, que pergunta o nome da pasta antes do seletor.
 
 Os arquivos escolhidos são **copiados** para `Documents/Music/`. Copiar não é uma escolha: o seletor
 devolve um arquivo temporário fora do sandbox, que o iOS descarta quando quiser, e uma biblioteca

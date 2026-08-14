@@ -23,6 +23,12 @@ export interface FolderListProps {
   /** Recebe a fila já montada e o índice da faixa tocada. */
   onTrackPress: (queue: Track[], index: number) => void;
   onTrackLongPress?: (track: Track) => void;
+  /** Abre o seletor de arquivos para trazer uma nova pasta. */
+  onImport?: () => void;
+  /** Enquanto true, o botão de importar fica desabilitado e mostra o progresso. */
+  isImporting?: boolean;
+  /** Texto do botão durante a cópia, ex. "Importando 3/12…". */
+  importLabel?: string;
 }
 
 type Row = { kind: 'folder'; node: FolderNode } | { kind: 'track'; track: Track; index: number };
@@ -43,6 +49,9 @@ export function FolderList({
   currentTrackId,
   onTrackPress,
   onTrackLongPress,
+  onImport,
+  isImporting = false,
+  importLabel,
 }: FolderListProps) {
   const theme = useTheme();
   const bottomInset = useContentBottomInset();
@@ -99,6 +108,45 @@ export function FolderList({
       </View>
     ) : null;
 
+  /**
+   * Importar fica aqui, e nao so em Ajustes.
+   *
+   * Depois da primeira pasta a tela de biblioteca vazia — o unico outro lugar
+   * com o botao — nunca mais aparece, e trazer a segunda pasta virava uma
+   * caca em Ajustes. A aba Pastas e onde o usuario pensa em pastas.
+   */
+  const importRow = onImport ? (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Importar pasta de músicas"
+      accessibilityState={{ disabled: isImporting }}
+      disabled={isImporting}
+      onPress={onImport}
+      style={({ pressed }) => [
+        styles.importRow,
+        {
+          borderRadius: theme.radius.card,
+          borderColor: theme.colors.primary,
+          opacity: isImporting ? 0.6 : 1,
+        },
+        pressed && { backgroundColor: theme.colors.surface },
+      ]}
+    >
+      <Ionicons name="add-circle-outline" size={22} color={theme.colors.primary} />
+      <Text variant="body" color="primary" numberOfLines={1} style={styles.importText}>
+        {isImporting ? (importLabel ?? 'Importando…') : 'Importar pasta'}
+      </Text>
+    </Pressable>
+  ) : null;
+
+  const header =
+    importRow || breadcrumb ? (
+      <View>
+        {importRow}
+        {breadcrumb}
+      </View>
+    ) : null;
+
   // Devolve o `FlatList` direto, sem envolver num `View`, como as outras abas.
   // Envolvido, ele nao ocupava o espaco disponivel e ficava colado na base da
   // tela, com um vazio de uns 800px acima. O breadcrumb entra como cabecalho da
@@ -108,7 +156,7 @@ export function FolderList({
       data={rows}
       keyExtractor={(row) => (row.kind === 'folder' ? `d:${row.node.path}` : `t:${row.track.id}`)}
       contentContainerStyle={{ paddingBottom: bottomInset }}
-      ListHeaderComponent={breadcrumb}
+      ListHeaderComponent={header}
       maxToRenderPerBatch={15}
       windowSize={7}
       ListEmptyComponent={
@@ -175,6 +223,19 @@ const styles = StyleSheet.create({
   crumbPath: {
     flexShrink: 1,
     textAlign: 'right',
+  },
+  importRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  importText: {
+    flexShrink: 1,
   },
   folderRow: {
     height: FOLDER_ROW_HEIGHT,

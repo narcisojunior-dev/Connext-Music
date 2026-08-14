@@ -50,7 +50,7 @@ export default function LibraryScreen() {
   const isHydrated = useLibraryStore((s) => s.isHydrated);
   const currentTrackId = usePlayerStore((s) => s.currentTrack?.id ?? null);
   const { scan } = useLibraryScanner();
-  const { importFiles, isImporting, progress } = useMusicImport();
+  const { importWithPrompt, isImporting, progress } = useMusicImport();
 
   const [activeTab, setActiveTab] = useState<LibraryTab>('all');
 
@@ -158,7 +158,7 @@ export default function LibraryScreen() {
                   ? 'Importando…'
                   : 'Importar músicas'
             }
-            onPress={() => void importFiles()}
+            onPress={importWithPrompt}
             disabled={isImporting}
           />
           <Button title="Escanear biblioteca" variant="secondary" onPress={() => scan()} />
@@ -226,6 +226,13 @@ export default function LibraryScreen() {
             handleTrackPress(queue[index], index, queue)
           }
           onTrackLongPress={setActionsTrack}
+          onImport={importWithPrompt}
+          isImporting={isImporting}
+          importLabel={
+            progress && progress.total > 0
+              ? `Importando ${progress.current}/${progress.total}…`
+              : 'Importando…'
+          }
         />
       )}
 

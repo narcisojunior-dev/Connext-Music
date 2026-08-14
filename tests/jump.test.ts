@@ -56,9 +56,9 @@ describe('salto para trás', () => {
 });
 
 describe('intervalo', () => {
-  test('é 10 segundos, como a tela de bloqueio anuncia', () => {
-    // O mesmo valor alimenta forwardJumpInterval/backwardJumpInterval; se
-    // divergirem, o botão do Control Center saltaria diferente do da tela.
+  test('é 10 segundos, como os botões do player anunciam', () => {
+    // O salto vive só dentro do app: a tela de bloqueio mostra faixa
+    // anterior/próxima. O número no botão vem desta constante.
     assert.equal(JUMP_SECONDS, 10);
   });
 });

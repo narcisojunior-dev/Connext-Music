@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, test } from 'node:test';
 
 import {
@@ -190,5 +192,28 @@ describe('navegação', () => {
       collectFolderTracks(rock).map((t) => t.id),
       ['a', 'b'],
     );
+  });
+});
+
+/**
+ * Importar precisa estar ao alcance na aba Pastas.
+ *
+ * Antes ele só existia na tela de biblioteca vazia — que some para sempre
+ * depois da primeira pasta — e em Ajustes, onde ninguém procura na hora de
+ * trazer a segunda. O teste lê o fonte porque o que se garante é a ligação
+ * entre a tela e o componente, não um comportamento executável.
+ */
+describe('atalho de importar na aba Pastas', () => {
+  const read = (rel: string) => readFileSync(join(import.meta.dirname, '..', 'src', rel), 'utf8');
+
+  test('FolderList expõe o botão de importar', () => {
+    const code = read(join('components', 'library', 'FolderList.tsx'));
+    assert.match(code, /onImport/);
+    assert.match(code, /Importar pasta/);
+  });
+
+  test('a tela da biblioteca liga o botão ao seletor de arquivos', () => {
+    const code = read(join('app', '(tabs)', 'index.tsx'));
+    assert.match(code, /onImport=\{importWithPrompt\}/);
   });
 });

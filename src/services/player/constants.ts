@@ -9,8 +9,7 @@
 /**
  * Quantos segundos os botões de avançar/retroceder deslocam.
  *
- * O mesmo valor alimenta `forwardJumpInterval`/`backwardJumpInterval` do Track
- * Player. Se divergirem, o botão do Control Center saltaria diferente do botão
- * da tela — e o usuário não teria como saber qual está certo.
+ * Vale só dentro do app: a tela de bloqueio e o Control Center mostram faixa
+ * anterior/próxima, não os saltos.
  */
 export const JUMP_SECONDS = 10;

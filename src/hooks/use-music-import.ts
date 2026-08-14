@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import { useLibraryScanner } from '@/hooks/use-library-scanner';
 import {
@@ -48,8 +48,36 @@ export function useMusicImport() {
     [progress, scan],
   );
 
+  /**
+   * Pergunta o nome da pasta antes de abrir o seletor.
+   *
+   * O seletor do iOS nao informa de que pasta cada arquivo veio, entao a
+   * organizacao de origem se perde de qualquer forma. Nomear o lote e o mais
+   * perto que da para chegar — e a aba Pastas passa a mostra-lo separado.
+   *
+   * `Alert.prompt` so existe no iOS; no Android vai direto para o seletor.
+   */
+  const importWithPrompt = useCallback(() => {
+    if (Platform.OS !== 'ios') {
+      void importFiles();
+      return;
+    }
+
+    Alert.prompt(
+      'Importar músicas',
+      'Nome da pasta para agrupar o que for importado. Deixe em branco para usar “Music”.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Escolher arquivos', onPress: (name?: string) => void importFiles(name?.trim()) },
+      ],
+      'plain-text',
+      '',
+    );
+  }, [importFiles]);
+
   return {
     importFiles,
+    importWithPrompt,
     /** Progresso da cópia, ou null quando não há importação em curso. */
     progress,
     isImporting: progress !== null,

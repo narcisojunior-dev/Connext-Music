@@ -43,11 +43,20 @@ describe('sessão de áudio', () => {
     }
   });
 
-  test('declara os intervalos de salto junto das capabilities', () => {
-    // Sem os intervalos, o iOS mostra o padrão de 15s nos botões da tela de
-    // bloqueio, divergindo dos 10s que o app aplica.
-    assert.match(code, /JumpForward/);
-    assert.match(code, /forwardJumpInterval/);
-    assert.match(code, /backwardJumpInterval/);
+  test('a tela de bloqueio traz faixa anterior/próxima, não os saltos de 10s', () => {
+    // Com as duas famílias declaradas o iOS escolhe os botões de salto e
+    // esconde os de faixa — e trocar de música é o que se quer no bloqueio.
+    const capabilities = /const CAPABILITIES = \[([^\]]*)\]/.exec(code)?.[1] ?? '';
+
+    assert.match(capabilities, /SkipToNext/);
+    assert.match(capabilities, /SkipToPrevious/);
+    assert.ok(
+      !capabilities.includes('Jump'),
+      'JumpForward/JumpBackward fariam o iOS esconder os botões de faixa',
+    );
+    assert.ok(
+      !code.includes('forwardJumpInterval') && !code.includes('backwardJumpInterval'),
+      'os intervalos só fazem sentido com as capabilities de salto declaradas',
+    );
   });
 });
